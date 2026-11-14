@@ -141,9 +141,32 @@ class QuickCaptureModal extends Modal {
         go();
       }
     });
+    this.renderSaves();
     sync();
     hint.toggle(targets.length > 1);
     window.setTimeout(() => input.focus(), 10);
+  }
+  /** Today's Quick saves under the box: click copies, × removes (issue 61). */
+  renderSaves() {
+    if (this.savesEl) this.savesEl.remove();
+    const items = this.plugin.quickSaves();
+    if (!items.length) return;
+    const box = (this.savesEl = this.contentEl.createDiv('nd-qc-saves'));
+    box.createDiv({ cls: 'nd-section-k', text: 'Saved today · click to copy' });
+    for (const it of items) {
+      const row = box.createDiv('nd-qc-save');
+      const txt = row.createEl('button', { cls: 'nd-qc-save-text', text: it.text, attr: { type: 'button', title: moment(it.t).format('HH:mm') } });
+      txt.addEventListener('click', async () => {
+        await navigator.clipboard.writeText(it.text);
+        new Notice('Copied');
+      });
+      const del = row.createEl('button', { cls: 'nd-icon-btn nd-qc-save-del', attr: { type: 'button', 'aria-label': 'Remove' } });
+      setIcon(del, 'x');
+      del.addEventListener('click', async () => {
+        await this.plugin.removeQuickSave(it);
+        this.renderSaves();
+      });
+    }
   }
   onClose() {
     this.contentEl.empty();

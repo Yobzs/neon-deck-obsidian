@@ -38,6 +38,7 @@ const SIGNOFFS = [
 ];
 
 const DEFAULT_SETTINGS = {
+  quickSave: { day: '', items: [] }, // Quick save scratch list, emptied each day (issue 61)
   name: '',
   openDashboardOnStartup: true,
   theme: 'marathon',

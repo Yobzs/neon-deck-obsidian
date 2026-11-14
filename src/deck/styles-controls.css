@@ -237,6 +237,35 @@ textarea.nd-input {
   gap: 6px;
   margin-top: 10px;
 }
+.nd-qc-saves {
+  margin-top: 14px;
+  max-height: 40vh;
+  overflow-y: auto;
+}
+.nd-qc-save {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+.nd-qc-save-text {
+  flex: 1;
+  min-width: 0;
+  justify-content: flex-start;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 13px var(--nd-mono);
+  color: var(--nd-text);
+  background: var(--nd-surface2);
+  border: var(--nd-border) solid var(--nd-line);
+  border-radius: var(--nd-radius-s);
+  box-shadow: none;
+  cursor: copy;
+}
+.nd-qc-save-text:hover {
+  border-color: var(--nd-warn);
+}
 .nd-qc-hint {
   margin-top: 10px;
   font: 12px var(--nd-mono);

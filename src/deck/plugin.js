@@ -9,6 +9,8 @@ class NeonDeck extends Plugin {
     this.lookListeners = new Set();
     this.widgets = new Map();
     this.captures = new Map();
+    // Quick save: numbers and bits of info for today only, listed in the Quick capture box (issue 61)
+    this.registerCapture({ id: 'save', label: 'Quick save', short: 'Save', icon: 'bookmark', order: 40, run: (v) => this.addQuickSave(v) });
     this.facts = new Map();
     this.activity = new Map(); // id -> () => [{ t, kind, text, src, status?, open? }] (Recently done log)
     this.actions = new Map();
@@ -222,6 +224,23 @@ class NeonDeck extends Plugin {
   }
   registerCapture(def) {
     this.captures.set(def.id, def);
+  }
+  /** Today's Quick saves, newest first; a new day starts empty. */
+  quickSaves() {
+    const today = moment().format('YYYY-MM-DD');
+    const qs = this.settings.quickSave;
+    if (!qs || qs.day !== today || !Array.isArray(qs.items)) this.settings.quickSave = { day: today, items: [] };
+    return this.settings.quickSave.items;
+  }
+  async addQuickSave(text) {
+    this.quickSaves().unshift({ text, t: Date.now() });
+    await this.saveSettings();
+    new Notice('Saved for today · open Quick capture to see it');
+  }
+  async removeQuickSave(item) {
+    const items = this.quickSaves();
+    if (items.includes(item)) items.splice(items.indexOf(item), 1);
+    await this.saveSettings();
   }
   captureTargets() {
     return [...this.captures.values()].sort((a, b) => (a.order ?? 50) - (b.order ?? 50));
