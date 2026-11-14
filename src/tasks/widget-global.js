@@ -57,7 +57,8 @@ Object.assign(NeonTasks.prototype, {
         icon(row, 'grip-vertical', 'nt-grip');
         const box = row.createDiv('nt-check');
         tip(box, 'Done');
-        const txt = row.createDiv({ cls: 'nt-text', text: t.text });
+        const txt = row.createDiv('nt-text');
+        this.fillTaskText(txt, t.text, '');
         tip(txt, 'Double-click to edit · drag to reorder');
         const del = row.createDiv('nt-del');
         setIcon(del, 'x');

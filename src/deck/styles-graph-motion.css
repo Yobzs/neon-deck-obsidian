@@ -359,6 +359,25 @@ body.nd-themed .suggestion-container {
 body.nd-themed .notice {
   animation: nd-fade-in 0.22s ease;
 }
+/* switching notes in the main pane (plugin.js noteIn) */
+.nd-note-in {
+  animation: nd-note-in 200ms var(--nd-ease) both;
+}
+@keyframes nd-note-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nd-note-in {
+    animation: none;
+  }
+}
 @keyframes nd-fade-in {
   from {
     opacity: 0;
@@ -394,9 +413,23 @@ body.nd-themed .notice {
   }
 }
 
-/* sidebar: a folder's contents sit indented under its name */
-.nd-side-body > .is-child {
-  margin-left: 14px;
+/* sidebar tree (issue 76): a chevron that turns when the folder is open; indents are set per row in cards-sidebar.js */
+.nd-side-chev {
+  flex: none;
+  color: var(--nd-muted);
+  transition: transform var(--nd-fast) var(--nd-ease);
+}
+.nd-side-chev svg {
+  width: 12px;
+  height: 12px;
+}
+.nd-side-chev.is-open {
+  transform: rotate(90deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .nd-side-chev {
+    transition: none;
+  }
 }
 
 /* notes and folders whose name starts with "!" sort first and get a small pin, in their own colour (issue 68) */

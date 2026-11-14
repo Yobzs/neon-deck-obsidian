@@ -53,37 +53,64 @@ Object.assign(CardsView.prototype, {
     if (folder.path !== '/') tip(label, folder.path);
     button(head, { icon: 'file-plus', cls: 'nd-icon-btn nd-side-add is-note', title: 'New note here', onClick: () => this.plugin.newNote(this.path) });
     button(head, { icon: 'folder-plus', cls: 'nd-icon-btn nd-side-add is-folder', title: 'New folder here', onClick: () => this.plugin.newFolder(this.path) });
+    const s = this.plugin.settings;
+    button(head, {
+      icon: s.sideTree ? 'list' : 'list-tree',
+      cls: 'nd-icon-btn nd-side-mode',
+      title: s.sideTree ? 'Show as a flat list' : 'Show as a tree',
+      onClick: async () => ((s.sideTree = !s.sideTree), await this.plugin.saveSettings(), this.renderSidebar(this.folder())),
+    });
+    const indent = folder.parent ? 14 : 0; // inside a folder, its contents sit a little indented under it
+    if (!this.sideList(body, folder, 0, indent)) emptyState(body, 'Empty folder');
+    this.toneRows(body);
+    finishAnim();
+    this.scroller.scrollTop = animate && dir !== 0 ? 0 : scroll;
+  },
+  /** One folder's contents: pinned notes, folders, notes. In tree mode an open folder's contents follow its row,
+   *  indented, down to SIDE_TREE_DEPTH levels (issue 76). Returns false when the folder is empty. */
+  sideList(body, folder, depth, indent) {
+    const s = this.plugin.settings;
+    const pad = (row) => (row.style.marginLeft = `${indent + depth * 14}px`);
     const kids = folder.children.slice();
     const dirs = kids.filter((c) => c instanceof TFolder).sort(bangFirst((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true })));
     const all = kids.filter((c) => c instanceof TFile).sort(this.sorter());
     // pinned ("!") notes sit above the folders (issue 65)
     const files = all.filter((f) => !f.name.startsWith('!'));
-    for (const f of all.filter((f) => f.name.startsWith('!'))) this.sideNote(body, f, false);
+    for (const f of all.filter((f) => f.name.startsWith('!'))) pad(this.sideNote(body, f, false));
     for (const d of dirs) {
       const info = this.folderInfo(d);
       const row = body.createDiv('nd-side-row is-folder');
+      pad(row);
       row.dataset.path = d.path;
       if (info.cat) row.style.setProperty('--row-tint', catColor(info.cat));
+      // a tree folder opens in place, except on the last level, which opens like in the flat list
+      const tree = s.sideTree && depth < SIDE_TREE_DEPTH - 1;
+      const open = tree && s.sideOpen.includes(d.path);
+      if (tree) icon(row, 'chevron-right', 'nd-ico nd-side-chev' + (open ? ' is-open' : ''));
       this.folderIcon(row, info.cat, d.path);
       if (d.name.startsWith('!')) (row.addClass('is-pinned'), icon(row, 'pin', 'nd-ico nd-side-bang'));
       row.createSpan({ cls: 'nd-side-name', text: d.name });
       row.createSpan({ cls: 'nd-side-count', text: String(info.notes.length + info.other) });
-      row.addEventListener('click', () => this.navigate(d.path, 1));
+      if (tree) row.setAttr('aria-expanded', String(open));
+      row.addEventListener('click', async () => {
+        if (!tree) return this.navigate(d.path, 1);
+        // shortcut: open folders are kept by path and not renamed with the folder; a moved folder just shows closed
+        s.sideOpen = open ? s.sideOpen.filter((p) => p !== d.path) : [...s.sideOpen, d.path];
+        await this.plugin.saveSettings();
+        this.renderSidebar(this.folder());
+      });
       row.addEventListener('contextmenu', (e) => this.folderMenu(d, e));
       this.dragFolder(row, d);
       this.makeDropTarget(row, () => d.path);
+      if (open) this.sideList(body, d, depth + 1, indent);
     }
-    for (const f of files.slice(0, this.limit)) this.sideNote(body, f, false);
+    for (const f of files.slice(0, this.limit)) pad(this.sideNote(body, f, false));
     if (files.length > this.limit) {
       const more = body.createDiv({ cls: 'nd-side-more', text: `Show ${files.length - this.limit} more…` });
+      pad(more);
       more.addEventListener('click', () => ((this.limit += 240), this.renderSidebar(this.folder())));
     }
-    if (!dirs.length && !all.length) emptyState(body, 'Empty folder');
-    // inside a folder, its contents sit a little indented under it
-    if (folder.parent) for (let el = head.nextElementSibling; el; el = el.nextElementSibling) el.addClass('is-child');
-    this.toneRows(body);
-    finishAnim();
-    this.scroller.scrollTop = animate && dir !== 0 ? 0 : scroll;
+    return dirs.length + all.length > 0;
   },
   /** Folders in shades of the accent (red), notes in shades of go (lime); shades alternate per kind. */
   toneRows(body) {
@@ -107,6 +134,7 @@ Object.assign(CardsView.prototype, {
     row.createSpan({ cls: 'nd-side-count', text: showPath && f.parent && f.parent.path !== '/' ? f.parent.path : shortAgo(t) });
     if (this.needsRevisit(f)) row.addClass('needs-revisit');
     this.plugin.bindFileMouse(row, f, this);
+    return row;
   },
 
   canMove(f, dest) {

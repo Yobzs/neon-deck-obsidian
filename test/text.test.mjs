@@ -390,3 +390,13 @@ test('flashcards off the page: neon-cards block, exercises, moving keeps ids (is
   assert.ok(after.every((c) => c.hidden));
   assert.ok(!/^- A :: 3$/m.test(moved) && moved.includes('B :: 2'));
 });
+
+test('task text links: wiki, alias, markdown; embeds and web links stay text', () => {
+  const { taskParts } = load('neon-tasks', ['taskParts']);
+  const plain = (v) => JSON.parse(JSON.stringify(v)); // arrays from the module's sandbox have another prototype
+  const links = (s) => plain(taskParts(s).filter((p) => p.link).map((p) => [p.text, p.link]));
+  assert.deepEqual(links('read [[Note A]] and [[Folder/B#Head|bee]] then [c](Some%20Note.md)'), [['Note A', 'Note A'], ['bee', 'Folder/B'], ['c', 'Some Note.md']]);
+  assert.deepEqual(links('see ![[img.png]] and [site](https://x.y) or ![](a.png)'), []);
+  assert.equal(taskParts('call [[Bob]] today').map((p) => p.text).join(''), 'call Bob today');
+  assert.deepEqual(plain(taskParts('plain')), [{ text: 'plain' }]);
+});

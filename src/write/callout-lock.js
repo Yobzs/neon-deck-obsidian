@@ -7,7 +7,8 @@ try {
 } catch (e) {
   console.error('Neon Write: callout lock needs @codemirror/state', e);
 }
-const lockAnno = cmState ? cmState.Annotation.define() : null; // marks our own lock/unlock edits
+// our own lock/unlock edits carry userEvent 'neon.lock': a plain string, so lock buttons drawn by an older
+// build (still on screen after a plugin update) are recognised by the new filter too (issue 67)
 const CALLOUT_HEAD_RE = /^(\s*>\s*\[!)([^\]|]+)(\|[^\]]*)?(\][+-]?)(.*)$/;
 /** Header line with "locked" added to or removed from the callout metadata; null when it isn't a callout header. */
 function toggleLockMeta(text) {

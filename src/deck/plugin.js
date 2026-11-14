@@ -82,6 +82,7 @@ class NeonDeck extends Plugin {
         if (!f) return;
         this.lastFile = f;
         this.markSeen(f.path, true);
+        this.noteIn(f);
       }),
     );
     this.registerEvent(
@@ -241,6 +242,28 @@ class NeonDeck extends Plugin {
     const items = this.quickSaves();
     if (items.includes(item)) items.splice(items.indexOf(item), 1);
     await this.saveSettings();
+  }
+  /** A short fade-and-rise when the main pane shows another note: switching notes or switching to a note's tab
+   *  (not when the same note opens again in the same tab, not in sidebars). */
+  noteIn(f, retried) {
+    if (prefersReducedMotion()) return;
+    const ws = this.app.workspace;
+    const leaf = ws.getMostRecentLeaf(ws.rootSplit);
+    if (!leaf || !(leaf.view instanceof obsidian.MarkdownView) || leaf.view.file !== f) {
+      // a tab that showed another view (dashboard, cards) gets its note view only after file-open
+      if (!retried) window.requestAnimationFrame(() => this.noteIn(f, true));
+      return;
+    }
+    const last = this.noteLast;
+    if (last && last.leaf === leaf && last.path === f.path) return;
+    this.noteLast = { leaf, path: f.path };
+    const el = leaf.view.contentEl;
+    el.removeClass('nd-note-in');
+    void el.offsetWidth; // restart the animation when notes switch quickly
+    el.addClass('nd-note-in');
+    // only our own animation: Obsidian's inner 'node-inserted' animationend bubbles up here too
+    const done = (e) => e.animationName === 'nd-note-in' && (el.removeClass('nd-note-in'), el.removeEventListener('animationend', done));
+    el.addEventListener('animationend', done);
   }
   captureTargets() {
     return [...this.captures.values()].sort((a, b) => (a.order ?? 50) - (b.order ?? 50));

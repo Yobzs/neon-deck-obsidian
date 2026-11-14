@@ -1,4 +1,24 @@
 Object.assign(NeonTasks.prototype, {
+  /** Task text with working note links: click opens the note (Ctrl = new tab), hover previews it. */
+  fillTaskText(el, text, from) {
+    el.empty();
+    for (const p of taskParts(text)) {
+      if (!p.link) {
+        el.appendText(p.text);
+        continue;
+      }
+      const a = el.createEl('a', { cls: 'internal-link nt-link', text: p.text, attr: { href: p.link, 'data-href': p.link } });
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation(); // not the row's own click (open the task's note)
+        const f = this.app.metadataCache.getFirstLinkpathDest(p.link, from);
+        if (f) openFile(this.app, f, e);
+        else new Notice(`No note named “${p.link}”`);
+      });
+      a.addEventListener('dblclick', (e) => e.stopPropagation()); // global tasks: double-click edits, not on a link
+      a.addEventListener('mouseover', (e) => this.app.workspace.trigger('hover-link', { event: e, source: 'preview', hoverParent: this.hoverHost || (this.hoverHost = { hoverPopover: null }), targetEl: a, linktext: p.link, sourcePath: from }));
+    }
+  },
   /* tasks widget --------------------------------------------------------- */
   mountTasks(card) {
     const body = card.body;
@@ -87,7 +107,8 @@ Object.assign(NeonTasks.prototype, {
     row.style.setProperty('--i', String(Math.min(i, 20)));
     const box = row.createDiv('nt-check');
     tip(box, 'Done');
-    const txt = row.createDiv({ cls: 'nt-text', text: t.display || t.raw });
+    const txt = row.createDiv('nt-text');
+    this.fillTaskText(txt, taskMetaless(t.raw), t.file.path);
     if (t.due) {
       const d = moment(t.due);
       row.createSpan({ cls: `nt-due is-${t.group}`, text: t.group === 'today' ? 'today' : d.format('D MMM') });
@@ -146,13 +167,13 @@ Object.assign(NeonTasks.prototype, {
         const v = inp.value.trim();
         inp.replaceWith(txt);
         if (save && v && v !== row._t.raw) {
-          txt.setText(taskDisplay(v));
+          this.fillTaskText(txt, taskMetaless(v), row._t.file.path);
           try {
-            if (!(await this.editTask(row._t, v))) txt.setText(row._t.display || row._t.raw);
+            if (!(await this.editTask(row._t, v))) this.fillTaskText(txt, taskMetaless(row._t.raw), row._t.file.path);
           } catch (e) {
             console.error('Neon Tasks: could not edit task', e);
             new Notice('Could not save the task');
-            txt.setText(row._t.display || row._t.raw);
+            this.fillTaskText(txt, taskMetaless(row._t.raw), row._t.file.path);
           }
         }
         this.emit();

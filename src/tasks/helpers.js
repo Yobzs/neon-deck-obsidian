@@ -23,15 +23,40 @@ const PROP_ORDER = [
 ];
 const TASK_LINE_RE = /^\s*(?:>\s*)*(?:[-*+]|\d+[.)])\s+\[ \]\s+(.*)$/;
 
+/** A task line without the Tasks-plugin emoji (dates, recurrence, priority); links and other text kept. */
+function taskMetaless(raw) {
+  return raw
+    .replace(/(?:📅|⏳|🛫|✅|➕)\s*\d{4}-\d{2}-\d{2}/gu, '')
+    .replace(/🔁[^📅⏳🛫✅➕]*/gu, '')
+    .replace(/[⏫🔼🔽🔺⏬]/gu, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 /** Clean display text of a task line (Tasks-plugin emoji stripped). */
 function taskDisplay(raw) {
-  return excerptOf(
-    raw
-      .replace(/(?:📅|⏳|🛫|✅|➕)\s*\d{4}-\d{2}-\d{2}/gu, '')
-      .replace(/🔁[^📅⏳🛫✅➕]*/gu, '')
-      .replace(/[⏫🔼🔽🔺⏬]/gu, ''),
-    140,
-  );
+  return excerptOf(taskMetaless(raw), 140);
+}
+const TASK_LINK_RE = /(!?)\[\[([^\]|#^]+)(?:[#^][^\]|]*)?(?:\|([^\]]+))?\]\]|(!?)\[([^\]]+)\]\(([^)\s]+)\)/g;
+/** Task text as plain and link parts: [[note]], [[note#h|alias]], [text](note.md). Embeds and web links stay text. */
+function taskParts(text) {
+  const out = [];
+  let last = 0;
+  for (const m of text.matchAll(TASK_LINK_RE)) {
+    if (m[1] || m[4] || (m[6] && /^[a-z][a-z0-9+.-]*:/i.test(m[6]))) continue;
+    let link = m[2];
+    if (m[6]) {
+      try {
+        link = decodeURI(m[6]);
+      } catch (_) {
+        link = m[6];
+      }
+    }
+    if (m.index > last) out.push({ text: text.slice(last, m.index) });
+    out.push({ text: (m[3] || m[5] || m[2]).trim(), link: link.trim() });
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) out.push({ text: text.slice(last) });
+  return out;
 }
 
 /** Group of a task: by its 📅 date, else Today for a daily note, else Later. */
