@@ -48,7 +48,7 @@ Object.assign(CardsView.prototype, {
     return ic;
   },
   folderCard(parent, folder, info, i) {
-    const card = this.baseCard(parent, 'nd-ci-folder', i, folder.path);
+    const card = this.baseCard(parent, 'nd-ci-folder' + (folder.name.startsWith('!') ? ' is-pinned' : ''), i, folder.path);
     this.folderIcon(card, info.cat, folder.path);
     const main = card.createDiv('nd-ci-main');
     const top = main.createDiv('nd-ci-top');
@@ -113,7 +113,7 @@ Object.assign(CardsView.prototype, {
     const isImg = IMG_EXT.has(ext);
     const cache = isMd ? this.app.metadataCache.getFileCache(file) : null;
     const cat = isMd ? noteCategory(cache) : null;
-    const card = this.baseCard(parent, 'nd-ci-note' + (isImg ? ' is-image' : '') + (isMd ? '' : ' is-other'), i, file.path);
+    const card = this.baseCard(parent, 'nd-ci-note' + (isImg ? ' is-image' : '') + (isMd ? '' : ' is-other') + (file.name.startsWith('!') ? ' is-pinned' : ''), i, file.path);
     if (cat && cat !== 'untracked') card.style.setProperty('--ci-accent', catColor(cat));
     if (this.plugin.lastFile && this.plugin.lastFile.path === file.path) card.addClass('is-active');
     const age = this.revisitAge(file);

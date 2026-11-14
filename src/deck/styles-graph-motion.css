@@ -399,10 +399,14 @@ body.nd-themed .notice {
   margin-left: 14px;
 }
 
-/* notes and folders whose name starts with "!" sort first and get a small pin */
+/* notes and folders whose name starts with "!" sort first and get a small pin, in their own colour (issue 68) */
+.nd-side-row.is-pinned,
+.nd-ci.is-pinned {
+  --tone-base: var(--nd-warn);
+}
 .nd-side-bang {
   flex: none;
-  color: var(--nd-go);
+  color: var(--nd-warn);
   opacity: 0.8;
 }
 .nd-side-bang svg {

@@ -65,7 +65,7 @@ Object.assign(CardsView.prototype, {
       row.dataset.path = d.path;
       if (info.cat) row.style.setProperty('--row-tint', catColor(info.cat));
       this.folderIcon(row, info.cat, d.path);
-      if (d.name.startsWith('!')) icon(row, 'pin', 'nd-ico nd-side-bang');
+      if (d.name.startsWith('!')) (row.addClass('is-pinned'), icon(row, 'pin', 'nd-ico nd-side-bang'));
       row.createSpan({ cls: 'nd-side-name', text: d.name });
       row.createSpan({ cls: 'nd-side-count', text: String(info.notes.length + info.other) });
       row.addEventListener('click', () => this.navigate(d.path, 1));
@@ -101,7 +101,7 @@ Object.assign(CardsView.prototype, {
     if (this.plugin.lastFile && this.plugin.lastFile.path === f.path) row.addClass('is-active');
     const cat = fileCategory(this.app, f);
     if (cat && cat !== 'untracked') row.style.setProperty('--row-accent', catColor(cat));
-    if (f.name.startsWith('!')) icon(row, 'pin', 'nd-ico nd-side-bang');
+    if (f.name.startsWith('!')) (row.addClass('is-pinned'), icon(row, 'pin', 'nd-ico nd-side-bang'));
     row.createSpan({ cls: 'nd-side-name', text: f.extension === 'md' ? f.basename : f.name });
     const t = Math.max(f.stat.mtime, this.plugin.settings.seen[f.path] || 0);
     row.createSpan({ cls: 'nd-side-count', text: showPath && f.parent && f.parent.path !== '/' ? f.parent.path : shortAgo(t) });
