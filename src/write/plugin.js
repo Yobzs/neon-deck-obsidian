@@ -70,6 +70,15 @@ class NeonWrite extends Plugin {
         for (const c of el.matches('.callout') ? [el] : el.querySelectorAll('.callout')) this.addLock(c, ctx);
         for (const m of el.querySelectorAll('.math-block')) this.addMathLock(m, ctx, el);
       });
+      // page breaks in Live Preview: a click doesn't open their HTML source; arrow keys still reach them to delete (issue 74)
+      const pbGuard = (e) => {
+        const w = e.target.closest && e.target.closest('.cm-html-embed');
+        if (!w || !w.querySelector(':scope > .nw-pagebreak')) return;
+        e.preventDefault();
+        e.stopPropagation();
+      };
+      this.registerDomEvent(document, 'mousedown', pbGuard, true);
+      this.registerDomEvent(document, 'click', pbGuard, true);
       // Live Preview draws math as widgets without post-processing; give each a lock as it appears
       if (cmView) this.registerEditorExtension(cmView.EditorView.updateListener.of((u) => u.view.contentDOM.querySelectorAll('.math-block').forEach((m) => this.addMathLock(m, null, null, u.view))));
       this.addCommand({

@@ -343,6 +343,13 @@ body.nd-themed :is(.workspace-leaf-content[data-type='markdown'], .print) {
   text-transform: uppercase;
   color: var(--nd-muted, var(--text-muted));
 }
+/* a page break is a marker, not content: no edit button (clicks are ignored in plugin.js, issue 74) */
+.cm-html-embed:has(> .nw-pagebreak) {
+  user-select: none;
+}
+.cm-html-embed:has(> .nw-pagebreak) .edit-block-button {
+  display: none;
+}
 @media print {
   .nw-pagebreak {
     visibility: hidden;
