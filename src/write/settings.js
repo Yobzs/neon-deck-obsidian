@@ -14,7 +14,7 @@ class NeonWriteSettingTab extends PluginSettingTab {
     new Setting(containerEl).setName('Toolbar on selected text').setDesc('Bold, italic, strikethrough, highlight, code, link, heading and callout.').addToggle((t) => t.setValue(s.toolbar).onChange((v) => ((s.toolbar = v), p.saveSettings(), p.toolbar && p.toolbar.hide())));
     new Setting(containerEl)
       .setName('Move new images to Core/Images')
-      .setDesc('New .png, .jpg and .jpeg files (pasted, dragged or copied in) move to the Images folder inside your Core folder. Links to them keep working.')
+      .setDesc('New images (.png, .jpg, .gif, .webp, .svg, .bmp, .avif) (pasted, dragged or copied in) move to the Images folder inside your Core folder. Links to them keep working.')
       .addToggle((t) => t.setValue(s.moveImages).onChange((v) => ((s.moveImages = v), p.saveSettings())))
       .addExtraButton((b) => b.setIcon('folder-input').setTooltip('Move existing images there now').onClick(() => p.moveExistingImages()));
     new Setting(containerEl)

@@ -72,7 +72,7 @@ Since 2.0 these are **modules of one plugin**. Neon Deck is the core; the others
 - **Merged table titles:** a cell that is only `<` joins the cell on its left; a first row like `| Title | < | < |` shows as one wide title (Reading view and PDF).
 - **Lifted writing window:** the note sits on a rounded, raised card that grows with the pane (70% of it, 700–1020px of text).
 - **Theme fonts and colours in notes:** body text, headings and code use the Neon theme's fonts; titles alternate between its primary and secondary colours.
-- **Images to Core/Images:** new `.png` / `.jpg` files move there automatically and links keep working; a command moves existing ones.
+- **Images to Core/Images:** new images (`.png`, `.jpg`, `.gif`, `.webp`, `.svg`, …) move there automatically and links keep working; a command moves existing ones.
 - **Pattern behind notes:** the dashboard's pattern, dimmed right down, behind the note you're writing (needs Neon Deck; strength and on/off in settings).
 - Optional: switch the Write module off and the others behave exactly as before.
 

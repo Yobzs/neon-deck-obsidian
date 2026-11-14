@@ -263,7 +263,7 @@ class NeonWrite extends Plugin {
   }
   isLooseImage(f) {
     const dir = this.imageFolder();
-    return f instanceof TFile && /^(png|jpe?g)$/i.test(f.extension) && !f.path.startsWith(dir + '/');
+    return f instanceof TFile && /^(png|jpe?g|gif|webp|svg|bmp|avif)$/i.test(f.extension) && !f.path.startsWith(dir + '/');
   }
   onCreate(f) {
     const deck = neonPlugin(this.app, 'neon-deck');
@@ -290,7 +290,7 @@ class NeonWrite extends Plugin {
   }
   moveExistingImages() {
     const loose = this.app.vault.getFiles().filter((f) => this.isLooseImage(f));
-    if (!loose.length) return new Notice(`No .png or .jpg images outside ${this.imageFolder()}.`);
+    if (!loose.length) return new Notice(`No images outside ${this.imageFolder()}.`);
     new ConfirmModal(this.app, {
       title: 'Move images',
       text: `Move ${loose.length} image${loose.length === 1 ? '' : 's'} into ${this.imageFolder()}? Links to them are updated.`,
