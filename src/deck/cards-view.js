@@ -72,7 +72,13 @@ class CardsView extends ItemView {
     const re = debounce(() => this.refresh(0, true), 250, true);
     this.registerEvent(this.app.vault.on('create', re));
     this.registerEvent(this.app.vault.on('delete', re));
-    this.registerEvent(this.app.vault.on('rename', re));
+    this.registerEvent(
+      this.app.vault.on('rename', (f, old) => {
+        // the folder on show (or one above it) moved: follow it instead of falling back to the vault root (issue 72)
+        if (f instanceof TFolder && (this.path === old || this.path.startsWith(old + '/'))) this.path = f.path + this.path.slice(old.length);
+        re();
+      }),
+    );
     this.registerEvent(
       this.app.metadataCache.on('changed', (f) => {
         this.updateCard(f);
