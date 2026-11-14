@@ -158,7 +158,6 @@ Object.assign(NeonDeck.prototype, {
     const entries = Array.from(dt.items || []).map((it) => it.webkitGetAsEntry && it.webkitGetAsEntry());
     const files = Array.from(dt.files);
     let n = 0;
-    const made = []; // top-level files created, for the caller (the pin board pins them)
     const free = async (dir, name) => {
       const dot = name.lastIndexOf('.');
       const base = dot > 0 ? name.slice(0, dot) : name;
@@ -172,8 +171,7 @@ Object.assign(NeonDeck.prototype, {
         const np = await free(dir, f.name);
         // files of a dropped folder stay where they are: Neon Write's image mover skips these paths
         if (inFolder) (this.placed || (this.placed = new Set())).add(np);
-        const tf = await this.app.vault.createBinary(np, await f.arrayBuffer());
-        if (!inFolder) made.push(tf);
+        await this.app.vault.createBinary(np, await f.arrayBuffer());
         n++;
       } catch (err) {
         console.error('Neon Deck: could not add', f.name, err);
@@ -205,7 +203,6 @@ Object.assign(NeonDeck.prototype, {
       }
     }
     if (n) new Notice(`Added ${n} file${n === 1 ? '' : 's'} → ${where}`);
-    return made;
   },
 
   /* file creation --------------------------------------------------------- */

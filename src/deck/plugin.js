@@ -17,7 +17,6 @@ class NeonDeck extends Plugin {
     this.services = new Map();
     this.dragging = null;
     this.api = this.buildApi();
-    this.initIsland();
     this.applyLook();
 
     this.registerView(VIEW_DASH, (leaf) => new DashboardView(leaf, this));
@@ -55,10 +54,8 @@ class NeonDeck extends Plugin {
     this.addCommand({
       id: 'quick-capture',
       name: 'Quick capture',
-      // popout windows keep the dialog; the main window uses the island's input line
-      callback: () => (activeDocument !== document ? new QuickCaptureModal(this).open() : this.openIsland({ focus: true })),
+      callback: () => new QuickCaptureModal(this).open(),
     });
-    this.addCommand({ id: 'toggle-pin-board', name: 'Toggle pin board', callback: () => this.toggleIsland() });
     this.addCommand({
       id: 'mark-revisited',
       name: 'Mark current note as revisited',
