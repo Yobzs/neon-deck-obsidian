@@ -33,7 +33,7 @@ class NeonWrite extends Plugin {
       // background writes from other plugins have no user event and pass, so editor and file never disagree
       this.registerEditorExtension(
         cmState.EditorState.transactionFilter.of((tr) => {
-          if (!tr.docChanged || tr.annotation(lockAnno)) return tr;
+          if (!tr.docChanged || tr.isUserEvent('neon.lock')) return tr;
           const ev = tr.annotation(cmState.Transaction.userEvent);
           if (!ev || !/^(input|delete|move|undo|redo)/.test(ev)) return tr;
           const ranges = lockedRanges(tr.startState.doc);
@@ -153,15 +153,13 @@ class NeonWrite extends Plugin {
     b.addEventListener('mousedown', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      const view = this.app.workspace.getLeavesOfType('markdown').map((l) => l.view).find((v) => v.contentEl.contains(c));
-      if (view && view.getMode() === 'source') {
-        const cm = view.editor.cm;
-        this.lockLine(cm, cm.state.doc.lineAt(cm.posAtDOM(c)));
-        return;
-      }
+      // any editor holding the callout (tabs, popouts, hover previews, canvas), not only the main tabs (issue 67)
+      const host = c.closest('.cm-editor');
+      const cm = host && cmView && cmView.EditorView.findFromDOM(host);
+      if (cm) return void this.lockLine(cm, cm.state.doc.lineAt(cm.posAtDOM(c)));
       const info = ctx.getSectionInfo(c);
       const file = this.app.vault.getAbstractFileByPath(ctx.sourcePath);
-      if (!info || !(file instanceof TFile)) return;
+      if (!info || !(file instanceof TFile)) return void new Notice('Can’t lock this callout here: open its note and try again');
       writeNote(this.app, file, (d) => {
         const lines = d.split('\n');
         const t = toggleLockMeta(lines[info.lineStart] || '');
@@ -225,7 +223,7 @@ class NeonWrite extends Plugin {
   lockLine(cm, line) {
     const t = toggleLockMeta(line.text) ?? toggleMathLock(line.text);
     if (t == null) return false;
-    cm.dispatch({ changes: { from: line.from, to: line.to, insert: t }, annotations: lockAnno.of(true) });
+    cm.dispatch({ changes: { from: line.from, to: line.to, insert: t }, userEvent: 'neon.lock' });
     return true;
   }
   /** A blocked edit: the locks in view give a short shake. */
