@@ -68,7 +68,7 @@ All six are modules of one plugin; switch any off in *Settings → Neon Deck mod
 2. Put the **`neon-deck` folder** into your vault's `.obsidian/plugins/`.
 3. Enable **Neon Deck** in *Settings → Community plugins*.
 
-**Updating:** copy only `main.js`, `manifest.json` and `styles.css` over the ones in `.obsidian/plugins/neon-deck/`, then reload. Never replace the folder itself: it holds your settings and data.
+**Updating:** copy only `main.js`, `manifest.json` and `styles.css` over the ones in `.obsidian/plugins/neon-deck/`, then reload. Don't replace the folder itself: it holds your settings and data (since 2.2.1 a copy is kept in `.obsidian/neon-deck-data/` and restored if the folder was replaced).
 
 **Safe mode:** if Neon Deck fails while starting, the next start keeps all modules off; turn them back on in *Settings → Neon Deck modules*.
 

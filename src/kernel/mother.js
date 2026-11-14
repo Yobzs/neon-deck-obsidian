@@ -3,6 +3,8 @@
  * Obsidian's own Plugin/Component lifecycle removes everything a child registered when it
  * stops, so a module can be switched off at runtime without leaks. NEON_MODULES is filled
  * in by the build (tools/build.mjs). */
+// a copy of each module's data.json outside the plugin folder: replacing that folder on update deletes data.json (issue 73)
+const KEEP_DIR = 'neon-deck-data';
 const KERNEL_FILE = 'modules.json'; // { off: { 'neon-time': true }, starting: bool, safe: bool }
 
 class NeonMother extends Plugin {
@@ -55,6 +57,11 @@ class NeonMother extends Plugin {
     try {
       await this.adoptData(m.id, dir);
       const child = new m.cls(this.app, { ...this.manifest, id: m.id, name: m.name, dir, fontsInCss: true });
+      const save = child.saveData;
+      child.saveData = async (data) => {
+        await save.call(child, data);
+        await this.keepData(m.id, JSON.stringify(data));
+      };
       // no default hotkeys (community rule); people upgrading from 1.x get them as their own, once
       const add = child.addCommand;
       child.addCommand = (c) => {
@@ -110,11 +117,32 @@ class NeonMother extends Plugin {
     hm.setHotkeys(id, keys);
     if (hm.save) hm.save();
   }
-  /** First start of a module: copy the settings of the old separate plugin (never move or delete it). */
+  keepPath(id) {
+    return normalizePath(`${this.app.vault.configDir}/${KEEP_DIR}/${id}.json`);
+  }
+  async keepData(id, text) {
+    const fs = this.app.vault.adapter;
+    const dir = normalizePath(`${this.app.vault.configDir}/${KEEP_DIR}`);
+    try {
+      if (!(await fs.exists(dir))) await fs.mkdir(dir);
+      await fs.write(this.keepPath(id), text);
+    } catch (e) {
+      console.error('Neon Deck: could not keep a copy of module data', e);
+    }
+  }
+  /** Before a module starts: refresh the kept copy of its data, or bring the data back from it when the plugin
+   *  folder was replaced; on the very first start, copy the settings of the old 1.x plugin (never move or delete it). */
   async adoptData(id, dir) {
     const fs = this.app.vault.adapter;
     if (!(await fs.exists(dir))) await fs.mkdir(dir);
-    if (id === 'neon-deck' || (await fs.exists(`${dir}/data.json`))) return;
+    const file = `${dir}/data.json`;
+    if (await fs.exists(file)) return this.keepData(id, await fs.read(file));
+    if (await fs.exists(this.keepPath(id))) {
+      await fs.write(file, await fs.read(this.keepPath(id)));
+      console.info(`Neon Deck: restored ${id} data from ${this.keepPath(id)}`);
+      return;
+    }
+    if (id === 'neon-deck') return;
     const old = normalizePath(`${this.app.vault.configDir}/plugins/${id}/data.json`);
     if (await fs.exists(old)) {
       await fs.write(`${dir}/data.json`, await fs.read(old));
