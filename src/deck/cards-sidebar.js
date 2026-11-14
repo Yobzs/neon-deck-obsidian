@@ -55,7 +55,10 @@ Object.assign(CardsView.prototype, {
     button(head, { icon: 'folder-plus', cls: 'nd-icon-btn nd-side-add is-folder', title: 'New folder here', onClick: () => this.plugin.newFolder(this.path) });
     const kids = folder.children.slice();
     const dirs = kids.filter((c) => c instanceof TFolder).sort(bangFirst((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true })));
-    const files = kids.filter((c) => c instanceof TFile).sort(this.sorter());
+    const all = kids.filter((c) => c instanceof TFile).sort(this.sorter());
+    // pinned ("!") notes sit above the folders (issue 65)
+    const files = all.filter((f) => !f.name.startsWith('!'));
+    for (const f of all.filter((f) => f.name.startsWith('!'))) this.sideNote(body, f, false);
     for (const d of dirs) {
       const info = this.folderInfo(d);
       const row = body.createDiv('nd-side-row is-folder');
@@ -75,7 +78,7 @@ Object.assign(CardsView.prototype, {
       const more = body.createDiv({ cls: 'nd-side-more', text: `Show ${files.length - this.limit} more…` });
       more.addEventListener('click', () => ((this.limit += 240), this.renderSidebar(this.folder())));
     }
-    if (!dirs.length && !files.length) emptyState(body, 'Empty folder');
+    if (!dirs.length && !all.length) emptyState(body, 'Empty folder');
     // inside a folder, its contents sit a little indented under it
     if (folder.parent) for (let el = head.nextElementSibling; el; el = el.nextElementSibling) el.addClass('is-child');
     this.toneRows(body);
