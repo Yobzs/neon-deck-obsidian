@@ -4,6 +4,7 @@
 const VIEW_DASH = 'neon-deck-dashboard';
 const VIEW_CARDS = 'neon-deck-cards';
 const VIEW_GRAPH = 'neon-deck-graph';
+const SIDE_TREE_DEPTH = 3; // sidebar tree: levels shown below the current folder (issue 76)
 /** Neon views that live in the main pane (folded into one pane once, see foldNeonTabs). */
 const MAIN_VIEWS = [VIEW_DASH, VIEW_CARDS, VIEW_GRAPH, 'neon-deck-tickets', 'neon-time'];
 
@@ -38,6 +39,8 @@ const SIGNOFFS = [
 ];
 
 const DEFAULT_SETTINGS = {
+  sideTree: false, // sidebar shows folders as a tree (issue 76)
+  sideOpen: [], // folders expanded in the sidebar tree
   quickSave: { day: '', items: [] }, // Quick save scratch list, emptied each day (issue 61)
   name: '',
   openDashboardOnStartup: true,
