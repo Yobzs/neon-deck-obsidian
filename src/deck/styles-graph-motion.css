@@ -359,6 +359,25 @@ body.nd-themed .suggestion-container {
 body.nd-themed .notice {
   animation: nd-fade-in 0.22s ease;
 }
+/* switching notes in the main pane (plugin.js noteIn) */
+.nd-note-in {
+  animation: nd-note-in 200ms var(--nd-ease) both;
+}
+@keyframes nd-note-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nd-note-in {
+    animation: none;
+  }
+}
 @keyframes nd-fade-in {
   from {
     opacity: 0;
