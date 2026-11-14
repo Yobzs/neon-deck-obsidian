@@ -4,3 +4,4 @@ data.json
 modules.json
 tools/neon-check-log.jsonl
 node_modules/
+.obsidian/
