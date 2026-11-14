@@ -325,15 +325,9 @@ async function activateView(app, type, where = 'tab') {
 }
 
 /* ---- daily notes ------------------------------------------------------ */
-// Daily notes settings from <configDir>/daily-notes.json (public file API); each call refreshes the copy in the background
-let dailyCache = {};
-function readDailyOpts(app) {
-  const p = normalizePath(`${app.vault.configDir}/daily-notes.json`);
-  return app.vault.adapter.read(p).then((t) => (dailyCache = JSON.parse(t) || {}), () => (dailyCache = {}));
-}
 function dailyOpts(app) {
-  readDailyOpts(app);
-  const o = dailyCache;
+  const dn = app.internalPlugins && app.internalPlugins.getPluginById && app.internalPlugins.getPluginById('daily-notes');
+  const o = (dn && dn.instance && dn.instance.options) || {};
   return { folder: (o.folder || '').trim(), format: o.format || 'YYYY-MM-DD', template: (o.template || '').trim() };
 }
 function dailyPath(app, m) {
@@ -354,7 +348,6 @@ function dailyDateOf(app, file) {
   return m.isValid() ? m : null;
 }
 async function ensureToday(app) {
-  await readDailyOpts(app); // creating a note: use the settings as they are now
   const existing = dailyFile(app);
   if (existing) return existing;
   const o = dailyOpts(app);
@@ -405,13 +398,16 @@ function writeNote(app, file, fn) {
 
 /* ---- cross-plugin glue ------------------------------------------------ */
 /** The Neon Deck core API, or null when the core plugin is off. */
-let neonMother = null; // set by the kernel while it runs (one bundle, so no plugin registry lookup)
 function deckApi(app) {
-  return (neonMother && neonMother.api) || null;
+  const p = app.plugins && app.plugins.getPlugin && app.plugins.getPlugin('neon-deck');
+  return (p && p.api) || null;
 }
-/** Another Neon module (a child of the neon-deck plugin), or null. */
+/** Another Neon module (2.x: a child of the neon-deck plugin; 1.x: its own plugin), or null. */
 function neonPlugin(app, id) {
-  return (neonMother && neonMother.modules.get(id)) || null;
+  const mother = app.plugins && app.plugins.getPlugin && app.plugins.getPlugin('neon-deck');
+  if (mother && mother.modules) return mother.modules.get(id) || null;
+  const p = app.plugins && app.plugins.getPlugin && app.plugins.getPlugin(id);
+  return p || null;
 }
 /** A small "made with Claude" line for settings tabs. */
 function madeWith(el, name) {
