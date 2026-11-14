@@ -97,6 +97,30 @@ Object.assign(NeonTasks.prototype, {
     const edit = row.createDiv('nt-del nt-edit-btn');
     setIcon(edit, 'pencil');
     tip(edit, 'Edit');
+    const del = row.createDiv('nt-del');
+    setIcon(del, 'x');
+    tip(del, 'Delete');
+    // removes the task line from its note (issue 71); Undo puts it back where it was
+    del.addEventListener('click', async () => {
+      const t = row._t;
+      if (t.pending) return;
+      const gone = await this.deleteTask(t);
+      this.emit();
+      if (gone == null) return;
+      const n = new Notice(createFragment((f) => {
+        f.appendText('Task deleted · ');
+        f.createEl('a', { text: 'Undo', href: '#' }).addEventListener('click', async (e) => {
+          e.preventDefault();
+          n.hide();
+          await writeNote(this.app, t.file, (data) => {
+            const lines = data.split('\n');
+            lines.splice(Math.min(t.line, lines.length), 0, gone);
+            return lines.join('\n');
+          });
+          this.emit();
+        });
+      }), 6000);
+    });
     box.addEventListener('click', async () => {
       if (row.hasClass('is-done') || row._t.pending) return;
       row.addClass('is-done');

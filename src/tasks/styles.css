@@ -162,8 +162,7 @@
   height: 13px;
 }
 .nt-gtask:hover .nt-grip,
-.nt-task:hover .nt-edit-btn,
-.nt-gtask:hover .nt-del {
+.nt-task:hover .nt-del {
   opacity: 1;
 }
 .nt-del {

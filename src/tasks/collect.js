@@ -90,6 +90,19 @@ Object.assign(NeonTasks.prototype, {
     if (!ok) new Notice('That task changed in the meantime — refreshed');
     return ok;
   },
+  /** Remove the task's line from its note; returns the removed line (for Undo), or null when it changed meanwhile. */
+  async deleteTask(t) {
+    let gone = null;
+    await writeNote(this.app, t.file, (data) => {
+      const lines = data.split('\n');
+      const l = lines[t.line];
+      if (l === undefined || !/\[ \]/.test(l) || !l.includes(t.raw)) return data;
+      gone = lines.splice(t.line, 1)[0];
+      return lines.join('\n');
+    });
+    if (gone == null) new Notice('That task changed in the meantime — refreshed');
+    return gone;
+  },
   async completeTask(t) {
     const stamp = this.settings.stampDone ? ` ✅ ${moment().format('YYYY-MM-DD')}` : '';
     let ok = false;
