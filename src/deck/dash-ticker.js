@@ -90,7 +90,8 @@ Object.assign(DashboardView.prototype, {
     const tm = neonPlugin(this.app, 'neon-time');
     if (tm && tm.days) {
       const todayKey = now.format('YYYY-MM-DD');
-      let total = 0;
+      const weekKey = now.clone().startOf('isoWeek').format('YYYY-MM-DD');
+      let weekMin = 0;
       let monthMin = 0;
       let worked = 0;
       let tasks = 0;
@@ -98,7 +99,7 @@ Object.assign(DashboardView.prototype, {
       for (const [key, day] of Object.entries(tm.days)) {
         // the day total includes the Start day / End day timer (issue 54), not only logged entries
         const min = tm.summary ? tm.summary(key, key === todayKey).total : (day.entries || []).reduce((s, e) => s + (e.ms || 0), 0) / 60000;
-        total += min;
+        if (key >= weekKey) weekMin += min;
         if (key >= monthStart.format('YYYY-MM-DD')) monthMin += min;
         if (min >= 1) worked++;
         for (const x of day.done || []) {
@@ -113,7 +114,7 @@ Object.assign(DashboardView.prototype, {
       } catch (e) {
         console.error('Neon Deck totals', e);
       }
-      tile([Math.round(total), (x) => fmtMin(Math.round(x))], 'time worked', 'var(--nd-accent)', `${fmtMin(Math.round(monthMin))} in ${month}${bal ? ` · ${bal > 0 ? '+' : ''}${fmtMin(bal)} balance` : ''}`, 'All time tracked in Neon Time, automatic and manual');
+      tile([Math.round(weekMin), (x) => fmtMin(Math.round(x))], 'worked this week', 'var(--nd-accent)', `${fmtMin(Math.round(monthMin))} in ${month}${bal ? ` · ${bal > 0 ? '+' : ''}${fmtMin(bal)} balance` : ''}`, `Time tracked in Neon Time this week (week ${now.isoWeek()}, from Monday), automatic and manual`);
       tile(worked, worked === 1 ? 'day worked' : 'days worked', 'var(--nd-info)', null, 'Days with tracked time');
       tile(tasks, 'tasks done', 'var(--nd-go)', `${tasksMonth} in ${month}`, 'Tasks ticked since Neon Time started counting');
     } else {
