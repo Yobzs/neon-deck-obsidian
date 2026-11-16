@@ -125,6 +125,8 @@ class CardsView extends ItemView {
     this.fwdBtn = button(nav, { icon: 'arrow-right', cls: 'nd-icon-btn', title: 'Forward (mouse forward button)', onClick: () => this.goForward() });
     this.upBtn = button(nav, { icon: 'arrow-up', cls: 'nd-icon-btn', title: 'Up a folder — drop cards here to move them up', onClick: () => this.goUp() });
     this.makeDropTarget(this.upBtn, () => this.parentPath());
+    this.rootBtn = button(nav, { icon: 'home', cls: 'nd-icon-btn', title: 'Go to the root folder — drop cards here to move them there', onClick: () => this.goRoot() });
+    this.makeDropTarget(this.rootBtn, () => '/');
     this.crumbs = bar.createDiv('nd-crumbs');
     const tools = bar.createDiv('nd-tools');
     this.buildSearch(tools);
@@ -234,6 +236,9 @@ class CardsView extends ItemView {
     const p = this.parentPath();
     if (p) this.navigate(p, -1);
   }
+  goRoot() {
+    this.navigate('/', -1);
+  }
   setMode(m) {
     this.plugin.settings.cardMode = m;
     this.plugin.saveSettings();
@@ -251,6 +256,7 @@ class CardsView extends ItemView {
     this.backBtn.toggleClass('is-disabled', !this.backStack.length);
     this.fwdBtn.toggleClass('is-disabled', !this.fwdStack.length);
     this.upBtn.toggleClass('is-disabled', !folder.parent);
+    this.rootBtn.toggleClass('is-disabled', !folder.parent);
     const mode = this.plugin.settings.cardMode;
     for (const [k, b] of Object.entries(this.modeBtns)) b.toggleClass('is-active', k === mode);
     const sortLabel = { 'created-prop': 'Created', modified: 'Recent', created: 'Created (file)', revisit: 'Revisit first', name: 'A → Z', 'name-desc': 'Z → A' }[this.plugin.settings.cardSort] || 'Recent';

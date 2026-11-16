@@ -48,6 +48,9 @@ Object.assign(CardsView.prototype, {
     const up = button(head, { icon: 'arrow-up', cls: 'nd-icon-btn', title: 'Up a folder', onClick: () => this.goUp() });
     up.toggleClass('is-disabled', !folder.parent);
     this.makeDropTarget(up, () => this.parentPath());
+    const home = button(head, { icon: 'home', cls: 'nd-icon-btn', title: 'Go to the root folder', onClick: () => this.goRoot() });
+    home.toggleClass('is-disabled', !folder.parent);
+    this.makeDropTarget(home, () => '/');
     // only the folder you're in, not the whole path (full path on hover)
     const label = head.createSpan({ cls: 'nd-section-k', text: folder.path === '/' ? this.app.vault.getName() : folder.name });
     if (folder.path !== '/') tip(label, folder.path);
