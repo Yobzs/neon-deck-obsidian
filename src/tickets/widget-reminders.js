@@ -1,6 +1,11 @@
+// tickets that need a nudge: a follow-up, due within `ahead` days, or a reminder that has come up
+function needsAttention(tickets, now, ahead) {
+  return tickets.filter((t) => t.bucket === 'followup' || (t.due && t.daysLeft <= ahead) || (t.remind && !t.remind.isAfter(now)));
+}
+
 Object.assign(NeonTickets.prototype, {
   /* dashboard widget ------------------------------------------------------------ */
-  mountWidget(card) {
+  mountWidget(card, filter, emptyText = 'No open tickets ✦') {
     const p = this;
     button(card.actions, { icon: 'plus', cls: 'nd-icon-btn', title: 'New ticket', onClick: () => p.newTicket() });
     button(card.actions, { icon: 'maximize-2', cls: 'nd-icon-btn', title: 'Open ticket tracker', onClick: () => p.openTracker() });
@@ -11,13 +16,15 @@ Object.assign(NeonTickets.prototype, {
       if (!list.isConnected) return;
       list.toggleClass('is-calm', renders++ > 0); // animate on first open only
       const all = p.collectTickets();
-      const act = all.filter((t) => t.status !== 'done');
-      card.badge.setText(act.length ? String(act.length) : '');
-      card.w.toggleClass('has-overdue', act.some((t) => t.bucket === 'overdue' || t.bucket === 'followup'));
+      const open = all.filter((t) => t.status !== 'done');
+      const act = open.filter((t) => !filter || filter(t, moment()));
+      card.badge.setText(act.length ? String(act.length) : ''); // each pane counts its own list
+      if (!filter) card.w.toggleClass('has-overdue', act.some((t) => t.bucket === 'overdue' || t.bucket === 'followup'));
+      if (card.alert) card.alert(act.some((t) => t.bucket === 'overdue' || t.bucket === 'followup'));
       p.renderCounter(counter, all);
       list.empty();
       if (!act.length) {
-        emptyState(list, 'No open tickets ✦');
+        emptyState(list, emptyText);
         return;
       }
       act.slice(0, 30).forEach((t, i) => {
@@ -61,7 +68,7 @@ Object.assign(NeonTickets.prototype, {
     const seen = this.settings.notified;
     for (const k of Object.keys(seen)) if (seen[k] !== today) delete seen[k];
     const ahead = this.settings.remindDays;
-    const due = this.activeTickets().filter((t) => t.bucket === 'followup' || (t.due && t.daysLeft <= ahead) || (t.remind && !t.remind.isAfter(now)));
+    const due = needsAttention(this.activeTickets(), now, ahead);
     const fresh = force ? due : due.filter((t) => seen[t.file.path] !== today);
     if (!fresh.length) {
       if (force) new Notice('No tickets need attention right now ✦');

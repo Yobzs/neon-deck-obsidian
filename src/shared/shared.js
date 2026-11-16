@@ -91,6 +91,72 @@ function widget(parent, cls, title, ic, sub) {
   const body = w.createDiv('nd-card-body');
   return { w, head, badge, actions, body };
 }
+/** Several panes in one dashboard card (issue 77). panes: [{id, label, mount(paneCard)}]; each pane gets a card-shaped
+ *  {w, head, body, actions, badge, alert(on)} so widget mount functions run unchanged and stay live while hidden.
+ *  Switch: click a tick, wheel over the head or the ticks, Left/Right on the ticks. Returns {destroy}. */
+function paneSwitch(card, panes, active, onSwitch) {
+  const strip = card.w.createDiv({ cls: 'nd-ticks', attr: { tabindex: '0', role: 'tablist' } });
+  card.w.insertBefore(strip, card.body);
+  card.body.addClass('nd-panes');
+  card.badge.addClass('nd-pane-off'); // each pane has its own badge
+  let cur = -1;
+  const items = panes.map((p) => {
+    const tick = strip.createEl('button', { cls: 'nd-tick', attr: { type: 'button', role: 'tab', tabindex: '-1', 'aria-label': p.label } });
+    tip(tick, p.label);
+    const body = card.body.createDiv('nd-pane');
+    const actions = card.actions.createDiv('nd-pane-actions');
+    const badge = createSpan({ cls: 'nd-card-badge' });
+    card.head.insertBefore(badge, card.actions);
+    const pc = { w: card.w, head: card.head, body, actions, badge, alert: (on) => tick.toggleClass('has-alert', !!on) };
+    let h = null;
+    try {
+      h = p.mount(pc) || null;
+    } catch (e) {
+      console.error(`Neon Deck pane ${p.id}`, e);
+      emptyState(body, 'This pane failed to load');
+    }
+    tick.addEventListener('click', () => set(p.id, true));
+    return { id: p.id, tick, body, actions, badge, h };
+  });
+  const set = (id, fire) => {
+    const i = Math.max(0, items.findIndex((x) => x.id === id));
+    items.forEach((x, k) => {
+      for (const el of [x.body, x.actions, x.badge]) el.toggleClass('nd-pane-off', k !== i);
+      x.tick.toggleClass('is-on', k === i);
+      x.tick.setAttr('aria-selected', String(k === i));
+    });
+    if (fire && i !== cur && onSwitch) onSwitch(items[i].id);
+    cur = i;
+  };
+  const step = (d) => set(items[(cur + d + items.length) % items.length].id, true);
+  let last = 0;
+  const wheel = (e) => {
+    if (!e.deltaY) return;
+    e.preventDefault();
+    if (Date.now() - last < 250) return; // one switch per wheel flick
+    last = Date.now();
+    step(e.deltaY > 0 ? 1 : -1);
+  };
+  card.head.addEventListener('wheel', wheel, { passive: false });
+  strip.addEventListener('wheel', wheel, { passive: false });
+  strip.addEventListener('keydown', (e) => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    e.preventDefault();
+    step(e.key === 'ArrowRight' ? 1 : -1);
+  });
+  set(active, false);
+  return {
+    destroy: () => {
+      for (const x of items) {
+        try {
+          if (x.h && x.h.destroy) x.h.destroy();
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    },
+  };
+}
 function emptyState(parent, text) {
   return parent.createDiv({ cls: 'nd-empty', text });
 }

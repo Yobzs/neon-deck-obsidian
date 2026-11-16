@@ -152,7 +152,26 @@ class NeonTickets extends Plugin {
   hookCore() {
     const api = deckApi(this.app);
     if (!api) return;
-    api.registerWidget({ id: 'tickets', slot: 'tickets', title: 'Tickets', icon: 'ticket', mount: (card) => this.mountWidget(card) });
+    api.registerWidget({
+      id: 'tickets',
+      slot: 'tickets',
+      title: 'Tickets',
+      icon: 'ticket',
+      mount: (card) =>
+        paneSwitch(
+          card,
+          [
+            { id: 'open', label: 'Open', mount: (c) => this.mountWidget(c) },
+            { id: 'waiting', label: 'Waiting / follow-ups', mount: (c) => this.mountWidget(c, (t) => t.status === 'waiting' || t.bucket === 'followup', 'Nothing waiting ✦') },
+            { id: 'attention', label: 'Needs attention', mount: (c) => this.mountWidget(c, (t, now) => needsAttention([t], now, this.settings.remindDays).length > 0, 'Nothing needs attention ✦') },
+          ],
+          this.settings.widgetPane,
+          (id) => {
+            this.settings.widgetPane = id;
+            this.saveSettings();
+          },
+        ),
+    });
     api.registerCapture({ id: 'ticket', label: 'Ticket', short: 'Ticket', icon: 'ticket', order: 20, allowEmpty: true, run: (v) => this.newTicket({ title: v }) });
     api.registerAction({ id: 'tickets', icon: 'ticket', label: 'Tickets', order: 20, view: VIEW_TICKETS, run: () => this.openTracker() });
     api.provide('ticketClick', (f) => {

@@ -29,6 +29,7 @@ const TICKETS_DEFAULTS = {
   reminders: true,
   remindDays: 1,
   autoFollowUpDays: 3,
+  widgetPane: 'open',
   notified: {},
   migrated: false,
   // old ticket templates { id, name, steps[], description, priority, dueDays }: moved once into notes in <ticketFolder>/Templates

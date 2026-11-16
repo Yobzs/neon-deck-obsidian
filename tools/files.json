@@ -39,6 +39,7 @@
         "src/deck/styles-tokens.css",
         "src/deck/styles-controls.css",
         "src/deck/styles-dashboard.css",
+        "src/deck/styles-panes.css",
         "src/deck/styles-cards.css",
         "src/deck/styles-sidebar-pins.css",
         "src/deck/styles-graph-motion.css"
@@ -55,6 +56,7 @@
         "src/tasks/plugin.js",
         "src/tasks/props.js",
         "src/tasks/widget-global.js",
+        "src/tasks/widget-progress.js",
         "src/tasks/widget-tasks.js",
         "src/tasks/collect.js"
       ],

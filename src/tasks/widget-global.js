@@ -181,6 +181,7 @@ Object.assign(NeonTasks.prototype, {
         '> Written by Neon Tasks. Edits here are ignored. If the plugin data is ever lost, Neon Tasks offers to restore from this note.',
         '',
         ...items.map((t) => `- [ ] ${t.text.replace(/\n/g, ' ')}`),
+        ...(this.settings.progress.length ? ['', '## Progress', '', ...this.settings.progress.map(progressLine)] : []),
         '',
       ].join('\n');
       const f = this.backupFile();

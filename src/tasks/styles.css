@@ -131,11 +131,13 @@
   background: var(--nd-surface, var(--background-primary));
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--nd-accent, var(--interactive-accent)) 20%, transparent);
 }
-.nd-card-body:has(> .nt-list) {
+.nd-card-body:has(> .nt-list),
+.nd-pane:has(> .nt-list) {
   display: flex;
   flex-direction: column;
 }
-.nd-card-body > .nt-list {
+.nd-card-body > .nt-list,
+.nd-pane > .nt-list {
   flex: 1;
   min-height: 0;
   overflow: auto;
@@ -448,4 +450,64 @@ body:not(.nd-themed) .nd-empty {
   .nt-gtask.is-dragging {
     transition: none;
   }
+}
+/* progress goals */
+.np-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 2px;
+}
+.np-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.np-bar {
+  flex: 0 1 110px;
+  min-width: 50px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--nd-surface2, var(--background-secondary));
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.np-fill {
+  height: 100%;
+  background: var(--nd-go);
+}
+.np-row.is-done .np-name {
+  color: var(--nd-muted, var(--text-muted));
+}
+.np-pct {
+  font: 11px var(--nd-mono, var(--font-monospace));
+  width: 34px;
+  text-align: right;
+}
+.np-due {
+  width: 44px; /* due dates line up in a column */
+  font: 11px var(--nd-mono, var(--font-monospace));
+  color: var(--nd-muted, var(--text-muted));
+  cursor: pointer;
+}
+.np-due.is-empty {
+  color: var(--nd-faint, var(--text-faint));
+}
+.np-due.is-overdue {
+  color: var(--nd-accent, var(--text-error));
+}
+/* hidden: only used to open the native date picker */
+.np-date {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.np-row:hover .nt-del {
+  opacity: 1;
 }

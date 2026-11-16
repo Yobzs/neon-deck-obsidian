@@ -1,0 +1,68 @@
+/* dashboard cards with several panes (issue 77): ticks at the top, the active one is an accent dot */
+.nd-pane-off {
+  display: none !important;
+}
+.nd-panes {
+  display: flex;
+  flex-direction: column;
+}
+.nd-pane {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+.nd-pane-actions {
+  display: flex;
+  gap: 6px;
+}
+.nd-ticks {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  height: 12px;
+  margin: -4px 0 8px;
+  outline-offset: 2px;
+}
+.nd-tick {
+  position: relative;
+  width: 3px;
+  height: 12px;
+  padding: 0;
+  border: none;
+  border-radius: 2px;
+  background: var(--nd-faint);
+  box-shadow: none;
+  cursor: pointer;
+  transition: width var(--nd-fast) ease, height var(--nd-fast) ease, background-color var(--nd-fast) ease, border-radius var(--nd-fast) ease;
+}
+.nd-tick::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+}
+.nd-tick:hover {
+  background: var(--nd-muted);
+}
+.nd-tick.is-on {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--nd-accent);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--nd-accent) 60%, transparent);
+}
+.nd-tick.has-alert:not(.is-on) {
+  background: var(--nd-accent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .nd-tick.has-alert:not(.is-on) {
+    animation: nd-tick-pulse 1.6s ease-in-out infinite;
+  }
+}
+@keyframes nd-tick-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}

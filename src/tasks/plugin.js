@@ -4,6 +4,7 @@ class NeonTasks extends Plugin {
     this.settings = Object.assign({}, TASKS_DEFAULTS, raw || {});
     const s = this.settings;
     if (!Array.isArray(s.globalTasks)) s.globalTasks = [];
+    if (!Array.isArray(s.progress)) s.progress = [];
     if (!Array.isArray(s.doneLog)) s.doneLog = [];
     if (!s.installedAt) s.installedAt = Date.now();
     this.freshData = !raw;
@@ -69,7 +70,7 @@ class NeonTasks extends Plugin {
     const api = deckApi(this.app);
     if (api) {
       api.unregisterWidget('tasks');
-      api.unregisterWidget('global');
+      api.unregisterWidget('progress');
       api.unregisterCapture('task');
       api.unregisterCapture('global');
       api.unregisterFacts('tasks');
@@ -104,8 +105,14 @@ class NeonTasks extends Plugin {
   hookCore() {
     const api = deckApi(this.app);
     if (!api) return;
-    api.registerWidget({ id: 'tasks', slot: 'tasks', title: 'Tasks', icon: 'list-checks', sub: 'Tagged notes · today · quick', mount: (card) => this.mountTasks(card) });
-    api.registerWidget({ id: 'global', slot: 'global', title: 'Global tasks', icon: 'star', sub: 'Important · not tied to notes', mount: (card) => this.mountGlobal(card) });
+    api.registerWidget({
+      id: 'tasks', slot: 'tasks', title: 'Tasks', icon: 'list-checks', sub: 'Tagged notes · today · global',
+      mount: (card) => paneSwitch(card, [
+        { id: 'tasks', label: 'Tasks', mount: (c) => this.mountTasks(c) },
+        { id: 'global', label: 'Global tasks', mount: (c) => this.mountGlobal(c) },
+      ], this.settings.widgetPane, (id) => { this.settings.widgetPane = id; this.saveSettings(); }),
+    });
+    api.registerWidget({ id: 'progress', slot: 'global', title: 'Progress', icon: 'gauge', sub: 'Goals and learning, with due dates', mount: (card) => this.mountProgress(card) });
     api.registerCapture({ id: 'task', label: 'Task', short: 'Task', icon: 'square-check', order: 10, run: (v) => this.addQuickTask(v) });
     api.registerCapture({ id: 'global', label: 'Global task', short: 'Global', icon: 'star', order: 11, run: (v) => this.addGlobal(v) });
     // Recently done on the dashboard: tasks ticked in the widgets (doneLog keeps 120 days)

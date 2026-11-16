@@ -12,6 +12,8 @@ const TASKS_DEFAULTS = {
   showNoCategoryBar: true,
   installedAt: 0,
   globalTasks: [],
+  progress: [],
+  widgetPane: 'tasks',
   doneLog: [],
   lastBackup: '',
 };
@@ -35,6 +37,15 @@ function taskMetaless(raw) {
 /** Clean display text of a task line (Tasks-plugin emoji stripped). */
 function taskDisplay(raw) {
   return excerptOf(taskMetaless(raw), 140);
+}
+/** Progress value snapped to 5% steps and clamped to 0..100. */
+function snapPct(x) {
+  const n = Math.round(Number(x) / 5) * 5;
+  return Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : 0;
+}
+/** Markdown line for a progress item, used in the backup note. */
+function progressLine(p) {
+  return `- ${p.text} — ${p.pct}%${p.due ? ' · due ' + p.due : ''}`;
 }
 const TASK_LINK_RE = /(!?)\[\[([^\]|#^]+)(?:[#^][^\]|]*)?(?:\|([^\]]+))?\]\]|(!?)\[([^\]]+)\]\(([^)\s]+)\)/g;
 /** Task text as plain and link parts: [[note]], [[note#h|alias]], [text](note.md). Embeds and web links stay text. */
