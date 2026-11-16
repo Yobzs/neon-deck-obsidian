@@ -29,10 +29,11 @@ Object.assign(CardsView.prototype, {
     const pins = this.plugin.settings.pinnedFolders.filter((p) => this.app.vault.getAbstractFileByPath(p) instanceof TFolder);
     if (pins.length) {
       body.createDiv({ cls: 'nd-section-k', text: 'Pinned folders' });
+      const grid = body.createDiv('nd-side-pins'); // issue 83: compact tiles
       for (const p of pins) {
         const fd = this.app.vault.getAbstractFileByPath(p);
         const info = this.folderInfo(fd);
-        const row = body.createDiv('nd-side-pin' + (p === this.path ? ' is-current' : ''));
+        const row = grid.createDiv('nd-side-pin' + (p === this.path ? ' is-current' : ''));
         this.folderIcon(row, info.cat, p);
         row.createSpan({ cls: 'nd-side-name', text: fd.name });
         row.createSpan({ cls: 'nd-side-count', text: String(info.notes.length + info.other) });
@@ -119,7 +120,7 @@ Object.assign(CardsView.prototype, {
   toneRows(body) {
     let dirs = 0;
     let notes = 0;
-    for (const el of Array.from(body.children)) {
+    for (const el of Array.from(body.querySelectorAll(':scope > *, :scope > .nd-side-pins > *'))) {
       if (el.matches('.nd-side-pin, .nd-side-row.is-folder')) el.addClass(dirs++ % 2 ? 'tone-b' : 'tone-a');
       else if (el.matches('.nd-side-row.is-note')) el.addClass(notes++ % 2 ? 'tone-b' : 'tone-a');
       else if (el.matches('.nd-section-k')) dirs = notes = 0;

@@ -493,37 +493,6 @@
 .nd-side-body > .nd-section-k:first-child {
   margin-top: 10px;
 }
-.nd-side-pin {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 7px 10px;
-  margin-bottom: 6px;
-  border-radius: 14px;
-  border: 1px solid var(--nd-line);
-  background: var(--nd-surface);
-  cursor: pointer;
-  transition: border-color var(--nd-fast) ease, transform var(--nd-fast) ease, background-color var(--nd-fast) ease, box-shadow var(--nd-fast) ease;
-}
-.nd-side-pin:hover {
-  border-color: var(--nd-line-strong);
-  transform: translateX(2px);
-}
-.nd-side-pin.is-current {
-  border-color: var(--nd-accent);
-}
-.nd-side-pin .nd-folder-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 9px;
-}
-.nd-side-pin .nd-folder-icon svg {
-  width: 15px;
-  height: 15px;
-}
-.nd-side-pin .nd-side-name {
-  font: 700 13px var(--nd-font-display);
-}
 .nd-side-name {
   flex: 1;
   min-width: 0;
@@ -761,8 +730,7 @@
 .nd-side-pin:hover {
   box-shadow: 0 4px 14px -10px color-mix(in srgb, var(--row-accent, var(--nd-accent)) 70%, transparent);
 }
-.nd-side-row:active,
-.nd-side-pin:active {
+.nd-side-row:active {
   transform: translateX(3px) scale(0.985);
 }
 .nd-side-row .nd-folder-icon,

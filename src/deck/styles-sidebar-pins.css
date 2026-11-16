@@ -1,0 +1,59 @@
+/* sidebar: pinned folders as a grid of compact tiles (issue 83); tone colours stay in styles-cards.css */
+.nd-side-pins {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.nd-side-pin {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 6px 8px;
+  min-width: 0;
+  border-radius: 14px;
+  border: 1px solid var(--nd-line);
+  background: var(--nd-surface);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color var(--nd-fast) ease, transform var(--nd-fast) ease, background-color var(--nd-fast) ease, box-shadow var(--nd-fast) ease;
+}
+.nd-side-pin:hover {
+  border-color: var(--nd-line-strong);
+  transform: translateY(-2px);
+}
+.nd-side-pin.is-current {
+  border-color: var(--nd-accent);
+}
+.nd-side-pin .nd-folder-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+}
+.nd-side-pin .nd-folder-icon svg {
+  width: 15px;
+  height: 15px;
+}
+/* two lines at most, then an ellipsis; the full path is in the tooltip */
+.nd-side-pin .nd-side-name {
+  flex: none;
+  width: 100%;
+  font: 700 11.5px/1.2 var(--nd-font-display);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.nd-side-pin .nd-side-count {
+  position: absolute;
+  top: 5px;
+  right: 7px;
+  font-size: 10px;
+}
+.nd-side-pin:active {
+  transform: translateY(-1px) scale(0.97);
+}

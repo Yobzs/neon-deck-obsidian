@@ -40,6 +40,7 @@
         "src/deck/styles-controls.css",
         "src/deck/styles-dashboard.css",
         "src/deck/styles-cards.css",
+        "src/deck/styles-sidebar-pins.css",
         "src/deck/styles-graph-motion.css"
       ]
     },
