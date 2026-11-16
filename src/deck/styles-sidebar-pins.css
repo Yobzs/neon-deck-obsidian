@@ -57,3 +57,10 @@
 .nd-side-pin:active {
   transform: translateY(-1px) scale(0.97);
 }
+/* pinned notes: where a dragged one will land (issue 80) */
+.nd-side-row.is-drop-above {
+  box-shadow: inset 0 2px 0 var(--nd-accent);
+}
+.nd-side-row.is-drop-below {
+  box-shadow: inset 0 -2px 0 var(--nd-accent);
+}

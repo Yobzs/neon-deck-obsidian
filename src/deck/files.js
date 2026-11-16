@@ -8,11 +8,18 @@ Object.assign(NeonDeck.prototype, {
     await this.saveSettings();
     this.app.workspace.trigger('neon-deck:pins-changed');
   },
+  /** Pinned notes of one folder were dragged into a new order (issue 80): theirs go first, other folders' keep theirs. */
+  async setPinOrder(paths) {
+    this.settings.pinOrder = [...paths, ...this.settings.pinOrder.filter((p) => !paths.includes(p))];
+    await this.saveSettings();
+    this.app.workspace.trigger('neon-deck:pins-changed');
+  },
   /** A folder was renamed or moved: its pins and icon colours (and those of folders inside it) follow. */
   async renamePins(oldPath, newPath) {
     let hit = false;
     const move = (p) => (p === oldPath || p.startsWith(oldPath + '/') ? ((hit = true), newPath + p.slice(oldPath.length)) : p);
     this.settings.pinnedFolders = this.settings.pinnedFolders.map(move);
+    this.settings.pinOrder = this.settings.pinOrder.map(move);
     const cols = this.settings.folderColors;
     for (const k of Object.keys(cols)) {
       const nk = move(k);

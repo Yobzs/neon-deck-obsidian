@@ -408,3 +408,15 @@ test('ticket log splits work from changes (issue 82)', () => {
   for (const x of ['Step done: call the vendor', 'All steps done (3)', 'Time logged: 1h — setup', 'Called Bob, he is on it', 'Done with the draft', 'Waiting room booked'])
     assert.ok(!isChangeLog(x), x);
 });
+
+test('pinned notes keep the order you dragged them into (issue 80)', () => {
+  const f = (name) => ({ name, path: 'A/' + name });
+  const byName = (a, b) => a.name.localeCompare(b.name);
+  const names = (list, order) => list.slice().sort(D.bangFirst(byName, order)).map((x) => x.name).join(',');
+  const list = [f('b'), f('!z'), f('!!y'), f('!x'), f('a')];
+  assert.equal(names(list), '!!y,!x,!z,a,b');
+  assert.equal(names(list, []), '!!y,!x,!z,a,b');
+  // dragged order wins over the "!" count; unlisted pins follow in the usual order; plain notes untouched
+  assert.equal(names(list, ['A/!z', 'A/!!y']), '!z,!!y,!x,a,b');
+  assert.equal(names(list, ['A/a', 'A/!x']), '!x,!!y,!z,a,b');
+});

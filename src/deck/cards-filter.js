@@ -34,7 +34,7 @@ Object.assign(CardsView.prototype, {
       const key = (f) => (keys.has(f.path) ? keys.get(f.path) : keys.set(f.path, createdOf(this.app, f)).get(f.path));
       cmp = (a, b) => key(b) - key(a) || byName(a, b);
     }
-    return bangFirst(cmp);
+    return bangFirst(cmp, this.plugin.settings.pinOrder);
   },
   /** Days since the note was last opened (or marked revisited); -1 when it isn't a school note. */
   revisitAge(f) {

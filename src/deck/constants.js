@@ -50,6 +50,7 @@ const DEFAULT_SETTINGS = {
   patternMotion: true,
   settingsVersion: 3,
   pinnedFolders: [],
+  pinOrder: [], // pinned ("!") note paths in the order you dragged them (issue 80)
   folderColors: {}, // folder path -> icon colour chosen by hand (beats the category colour)
   coreFolder: 'Core',
   coreTidied: false,

@@ -80,7 +80,12 @@ Object.assign(CardsView.prototype, {
     const all = kids.filter((c) => c instanceof TFile).sort(this.sorter());
     // pinned ("!") notes sit above the folders (issue 65)
     const files = all.filter((f) => !f.name.startsWith('!'));
-    for (const f of all.filter((f) => f.name.startsWith('!'))) pad(this.sideNote(body, f, false));
+    const pinned = all.filter((f) => f.name.startsWith('!'));
+    for (const f of pinned) {
+      const row = this.sideNote(body, f, false);
+      pad(row);
+      this.pinReorder(row, f, pinned);
+    }
     for (const d of dirs) {
       const info = this.folderInfo(d);
       const row = body.createDiv('nd-side-row is-folder');
@@ -141,6 +146,39 @@ Object.assign(CardsView.prototype, {
     return row;
   },
 
+  /** Drag a pinned note above or below another one in the same folder (issue 80). Other drops (into folders) are untouched. */
+  pinReorder(row, f, pinned) {
+    const ok = () => {
+      const d = this.plugin.dragging;
+      return d instanceof TFile && d !== f && pinned.includes(d);
+    };
+    const below = (e) => {
+      const r = row.getBoundingClientRect();
+      return e.clientY > r.top + r.height / 2;
+    };
+    const clear = () => row.removeClass('is-drop-above', 'is-drop-below');
+    row.addEventListener('dragover', (e) => {
+      if (!ok()) return;
+      e.preventDefault();
+      e.stopPropagation(); // the list behind is a "move here" target
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+      const b = below(e);
+      row.toggleClass('is-drop-below', b);
+      row.toggleClass('is-drop-above', !b);
+    });
+    row.addEventListener('dragleave', (e) => !row.contains(e.relatedTarget) && clear());
+    row.addEventListener('drop', async (e) => {
+      clear();
+      if (!ok()) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const moved = this.plugin.dragging;
+      this.plugin.dragging = null;
+      const list = pinned.filter((x) => x !== moved);
+      list.splice(list.indexOf(f) + (below(e) ? 1 : 0), 0, moved);
+      await this.plugin.setPinOrder(list.map((x) => x.path));
+    });
+  },
   canMove(f, dest) {
     if (dest == null) return false;
     const parent = f.parent ? f.parent.path : '/';

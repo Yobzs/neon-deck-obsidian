@@ -1,8 +1,21 @@
 
-/** Wrap a comparison so names starting with "!" come first ("!!" before "!"). */
-function bangFirst(cmp) {
+/** Wrap a comparison so names starting with "!" come first ("!!" before "!").
+ *  order: paths in the order you dragged pinned notes into (issue 80); it beats the "!" count, unlisted ones follow. */
+function bangFirst(cmp, order) {
   const bangs = (f) => (f.name.match(/^!+/) || [''])[0].length;
-  return (a, b) => bangs(b) - bangs(a) || cmp(a, b);
+  const rank = (f) => {
+    const i = order ? order.indexOf(f.path) : -1;
+    return i < 0 ? Infinity : i;
+  };
+  return (a, b) => {
+    const ba = bangs(a);
+    const bb = bangs(b);
+    if (ba && bb) {
+      const d = rank(a) - rank(b); // NaN when neither is listed
+      if (d) return d;
+    }
+    return bb - ba || cmp(a, b);
+  };
 }
 /** Everything that happened per day in a month: tasks, tickets, time entries, notes. Map 'YYYY-MM-DD' -> lists. */
 function actDays(p, d, month) {

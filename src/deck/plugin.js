@@ -95,12 +95,20 @@ class NeonDeck extends Plugin {
           this.saveSoon();
         }
         if (f instanceof TFolder) this.renamePins(old, f.path);
+        else if (this.settings.pinOrder.includes(old)) {
+          this.settings.pinOrder = this.settings.pinOrder.map((p) => (p === old ? f.path : p));
+          this.saveSoon();
+        }
       }),
     );
     this.registerEvent(
       this.app.vault.on('delete', (f) => {
         if (this.settings.seen[f.path]) {
           delete this.settings.seen[f.path];
+          this.saveSoon();
+        }
+        if (this.settings.pinOrder.includes(f.path)) {
+          this.settings.pinOrder = this.settings.pinOrder.filter((p) => p !== f.path);
           this.saveSoon();
         }
       }),
@@ -121,6 +129,7 @@ class NeonDeck extends Plugin {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, raw);
     const s = this.settings;
     if (!Array.isArray(s.pinnedFolders)) s.pinnedFolders = [];
+    if (!Array.isArray(s.pinOrder)) s.pinOrder = [];
     if (!s.folderColors || typeof s.folderColors !== 'object') s.folderColors = {};
     for (const [k, v] of Object.entries(s.folderColors)) if (!FOLDER_COLOR_RE.test(String(v))) delete s.folderColors[k];
     if (!s.seen || typeof s.seen !== 'object') s.seen = {};
