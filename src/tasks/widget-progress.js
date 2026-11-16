@@ -43,15 +43,38 @@ Object.assign(NeonTasks.prototype, {
         if (prevRow) prevRow.replaceWith(row); // edited: swap in place
         want.push(row);
         row.createDiv({ cls: 'np-name', text: t.text });
+        // the bar is a 20px tall hit zone around a thin track: click or drag along it to set the percent
         const bar = row.createDiv('np-bar');
-        bar.createDiv('np-fill').style.width = `${t.pct}%`;
-        tip(bar, 'Click to set progress');
-        bar.addEventListener('click', async (e) => {
+        const fill = bar.createDiv('np-track').createDiv('np-fill');
+        fill.style.width = `${t.pct}%`;
+        tip(bar, 'Click or drag to set progress');
+        const pctEl = row.createDiv({ cls: 'np-pct', text: `${t.pct}%` });
+        const at = (e) => {
           const r = bar.getBoundingClientRect();
-          t.pct = snapPct(((e.clientX - r.left) / r.width) * 100);
-          await this.progressChanged();
+          return snapPct(((e.clientX - r.left) / r.width) * 100);
+        };
+        const show = (v) => {
+          fill.style.width = `${v}%`;
+          pctEl.setText(`${v}%`);
+        };
+        let dragPct = null;
+        bar.addEventListener('pointerdown', (e) => {
+          if (e.button !== 0) return;
+          e.preventDefault();
+          bar.setPointerCapture(e.pointerId);
+          show((dragPct = at(e)));
         });
-        row.createDiv({ cls: 'np-pct', text: `${t.pct}%` });
+        bar.addEventListener('pointermove', (e) => dragPct !== null && show((dragPct = at(e))));
+        const done = async () => {
+          if (dragPct === null) return;
+          const v = dragPct;
+          dragPct = null;
+          if (v === t.pct) return;
+          t.pct = v;
+          await this.progressChanged();
+        };
+        bar.addEventListener('pointerup', done);
+        bar.addEventListener('lostpointercapture', done);
         const overdue = !!t.due && t.due < today && t.pct < 100;
         const due = row.createDiv({ cls: 'np-due' + (overdue ? ' is-overdue' : '') + (t.due ? '' : ' is-empty'), text: t.due ? moment(t.due).format('D MMM') : 'due?' });
         tip(due, 'Set due date');

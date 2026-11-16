@@ -469,12 +469,24 @@ body:not(.nd-themed) .nd-empty {
 .np-bar {
   flex: 0 1 110px;
   min-width: 50px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  touch-action: none;
+}
+.np-track {
+  flex: 1;
   height: 6px;
+  transition: height var(--nd-fast, 0.12s) ease;
   border-radius: 3px;
   background: var(--nd-surface2, var(--background-secondary));
   cursor: pointer;
   position: relative;
   overflow: hidden;
+}
+.np-bar:hover .np-track {
+  height: 9px;
 }
 .np-fill {
   height: 100%;
