@@ -400,3 +400,11 @@ test('task text links: wiki, alias, markdown; embeds and web links stay text', (
   assert.equal(taskParts('call [[Bob]] today').map((p) => p.text).join(''), 'call Bob today');
   assert.deepEqual(plain(taskParts('plain')), [{ text: 'plain' }]);
 });
+
+test('ticket log splits work from changes (issue 82)', () => {
+  const { isChangeLog } = load('neon-tickets', ['isChangeLog']);
+  for (const x of ['Status: Open → In progress', 'Done', 'Reopened', 'Waiting on Bob · follow up Mon 1 Dec', 'Waiting', 'Priority: normal → high', 'Due moved from 1 Dec to Tue 2 Dec', 'Due date cleared', 'Reminder set for Mon 1 Dec 09:00', 'Reminder cleared', 'Description updated', 'Followed up · next follow up Mon 1 Dec', 'No answer for 3 days — follow up today', 'Screenshot added', '2 screenshots added', 'Ticket opened'])
+    assert.ok(isChangeLog(x), x);
+  for (const x of ['Step done: call the vendor', 'All steps done (3)', 'Time logged: 1h — setup', 'Called Bob, he is on it', 'Done with the draft', 'Waiting room booked'])
+    assert.ok(!isChangeLog(x), x);
+});

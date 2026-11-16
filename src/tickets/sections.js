@@ -46,6 +46,11 @@ function addToSection(text, key, line) {
   } else lines.splice(end, 0, line);
   return lines.join('\n');
 }
+/** Automatic log lines about the ticket itself (status, priority, dates, edits), shown under Changes; steps, time and your own lines stay in Log (issue 82). Matches the texts written in actions.js / plugin.js / filing.js / widget-reminders.js / export-templates.js. */
+const CHANGE_LOG_RE = /^(Status: |Done$|Reopened$|Waiting( on |$| ·)|Priority: |Due moved |Due date cleared$|Reminder (set for |cleared$)|Description updated$|Followed up · |No answer for \d+ days|Screenshot added$|\d+ screenshots added$|Ticket opened$)/;
+function isChangeLog(text) {
+  return CHANGE_LOG_RE.test(text);
+}
 function parseTicketBody(text) {
   const lines = text.split('\n');
   const out = { description: [], steps: [], log: [], time: [], shots: [] };

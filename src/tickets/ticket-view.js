@@ -285,17 +285,23 @@ class TicketCard {
     } else shs.createDiv({ cls: 'tk-faint', text: 'No screenshots yet — paste one (Ctrl+V), drop image files here, or use the +.' });
 
     const ls = sec('Log', '', (s) => this.inline(s, 'Write a log line…', (v) => this.plugin.addLog(t, v), false, true), 'Write your own log line');
-    const log = b.log.slice().sort((x, y) => (y.when ? y.when.valueOf() : 0) - (x.when ? x.when.valueOf() : 0));
+    const all = b.log.slice().sort((x, y) => (y.when ? y.when.valueOf() : 0) - (x.when ? x.when.valueOf() : 0));
+    // issue 82: work (steps done, time, your own lines) in Log; status updates and edits in Changes
+    const log = all.filter((e) => !isChangeLog(e.text));
+    const changes = all.filter((e) => isChangeLog(e.text));
     // a new top line since the last draw of this ticket slides in (not on first open)
-    const key = log.length ? `${log[0].when ? log[0].when.valueOf() : ''} ${log[0].text}` : '';
+    const key = all.length ? `${all[0].when ? all[0].when.valueOf() : ''} ${all[0].text}` : '';
     const fresh = this.logSeen && this.logSeen.path === file.path && this.logSeen.key !== key;
     this.logSeen = { path: file.path, key };
-    log.forEach((e, i) => {
-      const r = ls.createDiv('tk-log' + (i === 0 ? ' is-latest' + (fresh ? ' is-fresh' : '') : ''));
-      r.createSpan({ cls: 'tk-log-at', text: e.when ? e.when.format(e.hasTime ? 'DD MMM HH:mm' : 'DD MMM') : '' });
-      r.createSpan({ cls: 'tk-log-text', text: e.text });
-    });
+    const rows = (el, list) =>
+      list.forEach((e, i) => {
+        const r = el.createDiv('tk-log' + (i === 0 ? ' is-latest' + (fresh && e === all[0] ? ' is-fresh' : '') : ''));
+        r.createSpan({ cls: 'tk-log-at', text: e.when ? e.when.format(e.hasTime ? 'DD MMM HH:mm' : 'DD MMM') : '' });
+        r.createSpan({ cls: 'tk-log-text', text: e.text });
+      });
+    rows(ls, log);
     if (!log.length) ls.createDiv({ cls: 'tk-faint', text: 'Nothing logged yet.' });
+    if (changes.length) rows(sec('Changes', String(changes.length)), changes);
 
     if (b.time.length) {
       const ts = sec('Time', fmtMin(total), () => new TimeEntryModal(this.plugin, t, (v) => this.plugin.logTime(t, v)).open(), 'Add time');
