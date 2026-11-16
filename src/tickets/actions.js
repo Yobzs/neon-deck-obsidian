@@ -28,7 +28,7 @@ Object.assign(NeonTickets.prototype, {
     }
     if (status === 'waiting') {
       return new WaitingModal(this, t, async ({ who, followUp }) => {
-        const wait = { status: 'waiting', waiting_on: who || null, follow_up: followUp || null, waiting_since: moment().format('YYYY-MM-DD') };
+        const wait = { status: 'waiting', waiting_on: who || null, follow_up: followUp || null, waiting_since: dayKey() };
         if (t.status === 'done') wait.completed = null;
         await this.patch(t, wait);
         this.logStatus(t, 'waiting');
@@ -36,7 +36,7 @@ Object.assign(NeonTickets.prototype, {
       }).open();
     }
     const patch = { status, waiting_on: null, follow_up: null, waiting_since: null };
-    if (status === 'done') patch.completed = moment().format('YYYY-MM-DD');
+    if (status === 'done') patch.completed = dayKey();
     else if (t.status === 'done') patch.completed = null;
     await this.patch(t, patch);
     this.logStatus(t, status);

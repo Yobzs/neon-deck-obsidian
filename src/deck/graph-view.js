@@ -7,7 +7,7 @@ class GraphView extends ItemView {
     super(leaf);
     this.navigation = true;
     this.plugin = plugin;
-    // notes only: the concept graph was taken out of the UI in 1.6 (its code is still below, unused)
+    // notes only (the concept graph was removed: 1.6 hid it, issue 79 deleted its code)
     this.mode = 'notes';
     this.scope = 'vault';
     this.showLabels = true;
@@ -38,7 +38,7 @@ class GraphView extends ItemView {
   }
   async setState(state, result) {
     if (state) {
-      // older layouts may still ask for 'concepts'; always show notes
+      // older layouts may still ask for 'concepts'
       this.mode = 'notes';
       if (state.scope) this.scope = state.scope;
     }
@@ -142,7 +142,7 @@ class GraphView extends ItemView {
     const sel = this.scopeSel;
     sel.empty();
     sel.createEl('option', { value: 'vault', text: '◎ Whole vault' });
-    sel.createEl('option', { value: 'note', text: '✎ Active note' + (this.mode === 'notes' ? ' (2 hops)' : '') });
+    sel.createEl('option', { value: 'note', text: '✎ Active note (2 hops)' });
     const folders = this.app.vault
       .getAllLoadedFiles()
       .filter((f) => f instanceof TFolder && f.path !== '/')
@@ -160,7 +160,6 @@ class GraphView extends ItemView {
       const f = this.plugin.lastFile;
       if (!f || f.extension !== 'md') return [];
       this.builtFor = f.path;
-      if (this.mode === 'concepts') return [f];
       const rl = this.app.metadataCache.resolvedLinks;
       const back = new Map();
       for (const src in rl) for (const dst in rl[src]) {
@@ -193,17 +192,7 @@ class GraphView extends ItemView {
     const s = this.plugin.settings;
     const files = this.scopeFiles();
     this.statEl.setText('analysing…');
-    let net;
-    if (this.mode === 'concepts') {
-      const docs = [];
-      const some = files.slice(0, 1500);
-      const texts = await Promise.all(some.map((f) => this.app.vault.cachedRead(f).catch(() => '')));
-      some.forEach((f, i) => docs.push({ path: f.path, text: texts[i] }));
-      if (token !== this.buildToken) return;
-      net = buildConceptNetwork(docs, { window: s.graphWindow, maxNodes: s.graphMaxNodes, stopwords: this.plugin.stopwords() });
-    } else {
-      net = buildNoteNetwork(this.app, files, s.graphMaxNodes * 2);
-    }
+    const net = buildNoteNetwork(this.app, files, s.graphMaxNodes * 2);
     if (token !== this.buildToken) return;
     this.selected = this.hover = this.focusTopic = this.previewTopic = -1;
     this.gapFocus = null;
@@ -218,12 +207,7 @@ class GraphView extends ItemView {
       this.emptyEl.addClass('is-visible');
       this.emptyEl.createDiv({ cls: 'nd-graph-empty-art', text: '◌ ◌ ◌' });
       this.emptyEl.createDiv({
-        text:
-          this.mode === 'concepts'
-            ? this.scope === 'note'
-              ? 'Open a note with some text, then come back ✦'
-              : 'Not enough text yet — write a few notes and rebuild ✦'
-            : 'No linked notes in this scope yet — connect notes with [[links]] ✦',
+        text: 'No linked notes in this scope yet — connect notes with [[links]] ✦',
       });
       this.panel.empty();
       this.requestDraw();
@@ -252,7 +236,7 @@ class GraphView extends ItemView {
     this.sim = new ForceSim(this.nodes, this.links);
     this.seedLayout(7);
     for (let i = 0; i < 180; i++) this.sim.tick();
-    this.statEl.setText(`${this.nodes.length} ${this.mode === 'concepts' ? 'concepts' : 'notes'} · ${this.links.length} links · ${an.topics.length} topics`);
+    this.statEl.setText(`${this.nodes.length} notes · ${this.links.length} links · ${an.topics.length} topics`);
     this.fit(false);
     this.renderPanel();
     this.kick();

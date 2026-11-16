@@ -554,40 +554,6 @@ body:not(.nd-themed) {
   --nd-med: 250ms;
   --nd-ease: ease;
 }
-body:not(.nd-themed) :is(.nd-btn, .nd-pill-btn, .nd-seg-btn) {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-}
-body:not(.nd-themed) .nd-pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-body:not(.nd-themed) .nd-pill-btn {
-  border-radius: 999px;
-  padding: 4px 12px;
-}
-body:not(.nd-themed) :is(.nd-pill-btn.is-on, .nd-seg-btn.is-active) {
-  background: var(--pill-accent, var(--nd-accent));
-  color: var(--nd-on-accent);
-}
-body:not(.nd-themed) .nd-input {
-  width: 100%;
-}
-body:not(.nd-themed) .nd-modal-row {
-  display: flex;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 14px;
-}
-body:not(.nd-themed) .nd-empty {
-  padding: 14px 6px;
-  color: var(--nd-faint);
-  text-align: center;
-}
 /* ---- motion (all of it switches off with reduced motion, see Neon Deck's styles) ---- */
 /* ring: segments draw in one after another, the ring turns into place */
 .tm-donut.is-intro svg {

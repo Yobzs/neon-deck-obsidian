@@ -136,7 +136,6 @@ class NeonDeck extends Plugin {
     if ((raw.settingsVersion || 0) < 3) {
       // 1.2 -> 1.3: style "intensity" becomes a theme; glass/random are gone
       s.theme = raw.intensity === 'calm' ? 'calm' : 'marathon';
-      this.legacy = Object.assign({}, raw);
       for (const k of OLD_KEYS) delete s[k];
       s.settingsVersion = 3;
       await this.saveData(s);
@@ -237,7 +236,7 @@ class NeonDeck extends Plugin {
   }
   /** Today's Quick saves, newest first; a new day starts empty. */
   quickSaves() {
-    const today = moment().format('YYYY-MM-DD');
+    const today = dayKey();
     const qs = this.settings.quickSave;
     if (!qs || qs.day !== today || !Array.isArray(qs.items)) this.settings.quickSave = { day: today, items: [] };
     return this.settings.quickSave.items;

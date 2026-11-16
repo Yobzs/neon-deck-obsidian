@@ -32,7 +32,7 @@ Object.assign(NeonTasks.prototype, {
         }
         want.push(e);
       }
-      const today = moment().format('YYYY-MM-DD');
+      const today = dayKey();
       items.forEach((t) => {
         const sig = `${t.text}|${t.pct}|${t.due}`;
         const prevRow = old.get(t.id);

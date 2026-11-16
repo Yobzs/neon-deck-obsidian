@@ -89,7 +89,7 @@ Object.assign(DashboardView.prototype, {
     // time worked (Neon Time)
     const tm = neonPlugin(this.app, 'neon-time');
     if (tm && tm.days) {
-      const todayKey = now.format('YYYY-MM-DD');
+      const todayKey = dayKey(now);
       const weekKey = now.clone().startOf('isoWeek').format('YYYY-MM-DD');
       let weekMin = 0;
       let monthMin = 0;
@@ -100,7 +100,7 @@ Object.assign(DashboardView.prototype, {
         // the day total includes the Start day / End day timer (issue 54), not only logged entries
         const min = tm.summary ? tm.summary(key, key === todayKey).total : (day.entries || []).reduce((s, e) => s + (e.ms || 0), 0) / 60000;
         if (key >= weekKey) weekMin += min;
-        if (key >= monthStart.format('YYYY-MM-DD')) monthMin += min;
+        if (key >= dayKey(monthStart)) monthMin += min;
         if (min >= 1) worked++;
         for (const x of day.done || []) {
           if (x.kind !== 'task') continue;

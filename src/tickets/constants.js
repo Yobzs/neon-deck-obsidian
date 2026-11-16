@@ -31,7 +31,6 @@ const TICKETS_DEFAULTS = {
   autoFollowUpDays: 3,
   widgetPane: 'open',
   notified: {},
-  migrated: false,
   // old ticket templates { id, name, steps[], description, priority, dueDays }: moved once into notes in <ticketFolder>/Templates
   // (templatesMigrated), kept here only as a backup
   templates: [],

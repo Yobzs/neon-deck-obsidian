@@ -296,11 +296,4 @@ Object.assign(NeonDeck.prototype, {
     }
     return total;
   },
-  stopwords() {
-    const extra = this.settings.extraStopwords
-      .split(/[,\n]/)
-      .map((w) => w.trim().toLowerCase())
-      .filter(Boolean);
-    return new Set([...STOPWORDS, ...extra]);
-  },
 });

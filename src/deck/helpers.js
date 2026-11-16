@@ -44,7 +44,7 @@ function actDays(p, d, month) {
   const timeDay = p.services.get('timeDay');
   if (timeDay)
     for (let m = moment(from); m.valueOf() <= to && !m.isAfter(moment(), 'day'); m.add(1, 'day')) {
-      const k = m.format('YYYY-MM-DD');
+      const k = dayKey(m);
       const td = timeDay(k);
       if (!td || !td.worked) continue;
       const x = day(m.valueOf());
@@ -84,7 +84,7 @@ const ACTIVITY_STATS = [
       let best = 0;
       let run = 0;
       for (let m = month.clone().startOf('month'); m.isSame(month, 'month'); m.add(1, 'day')) {
-        const x = days.get(m.format('YYYY-MM-DD'));
+        const x = days.get(dayKey(m));
         run = x && actCount(x) ? run + 1 : 0;
         best = Math.max(best, run);
       }

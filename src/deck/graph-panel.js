@@ -5,42 +5,15 @@ Object.assign(GraphView.prototype, {
     this.requestDraw();
   },
   nodeFile(n) {
-    if (this.mode === 'notes') return this.net.files[n.i];
-    if (n.kind === 'link') return this.app.metadataCache.getFirstLinkpathDest(this.net.keys[n.i].slice(1, -1), '');
-    return null;
+    return this.net.files[n.i];
   },
   activateNode(n, e) {
     const f = this.nodeFile(n);
     if (f) this.plugin.openFile(f, e);
-    else this.plugin.openSearch(n.kind === 'tag' ? `tag:${n.label}` : n.label);
   },
   nodeMenu(n, e) {
     const f = this.nodeFile(n);
-    if (this.mode === 'notes' && f) {
-      this.plugin.fileMenu(f, e);
-      return;
-    }
-    const m = new Menu();
-    m.addItem((it) => it.setTitle(`Search notes for “${n.label}”`).setIcon('search').onClick(() => this.plugin.openSearch(n.kind === 'tag' ? `tag:${n.label}` : n.label)));
-    if (f) m.addItem((it) => it.setTitle('Open note').setIcon('file-text').onClick(() => this.plugin.openFile(f)));
-    else if (n.kind === 'word')
-      m.addItem((it) =>
-        it.setTitle(`Create note “${n.label}”`).setIcon('file-plus').onClick(async () => {
-          const nf = await createUnique(this.app, '', n.label, `# ${n.label}\n\n`);
-          this.plugin.openFile(nf);
-        }),
-      );
-    m.addItem((it) => it.setTitle('Focus its topic').setIcon('shapes').onClick(() => this.toggleTopic(n.c)));
-    m.addSeparator();
-    m.addItem((it) =>
-      it.setTitle(`Hide “${n.label}” (stop-word)`).setIcon('eye-off').onClick(async () => {
-        const s = this.plugin.settings;
-        s.extraStopwords = [s.extraStopwords, this.net.keys[n.i]].filter(Boolean).join(', ');
-        await this.plugin.saveSettings();
-        this.rebuild();
-      }),
-    );
-    m.showAtMouseEvent(e);
+    if (f) this.plugin.fileMenu(f, e);
   },
   toggleTopic(k) {
     this.focusTopic = this.focusTopic === k ? -1 : k;
@@ -67,7 +40,7 @@ Object.assign(GraphView.prototype, {
     p.empty();
     const an = this.an;
     const pal = this.colors().pal;
-    const unit = this.mode === 'concepts' ? 'concepts' : 'notes';
+    const unit = 'notes';
 
     const st = this.section('Structure', 'gauge');
     const badge = st.createDiv(`nd-diversity is-${an.diversity.toLowerCase()}`);
@@ -132,7 +105,7 @@ Object.assign(GraphView.prototype, {
       sb.style.setProperty('--topic', pal[g.b % pal.length]);
       card.createDiv({
         cls: 'nd-gap-q',
-        text: this.mode === 'concepts' ? `How does “${wa[0]}” relate to “${wb[0]}”?` : `What connects [[${wa[0]}]] with [[${wb[0]}]]?`,
+        text: `What connects [[${wa[0]}]] with [[${wb[0]}]]?`,
       });
       card.createDiv({ cls: 'nd-gap-meta', text: g.weight ? `only ${g.weight} weak link${g.weight === 1 ? '' : 's'} between them` : 'no links between them yet' });
       const row = card.createDiv('nd-gap-actions');
@@ -175,17 +148,12 @@ Object.assign(GraphView.prototype, {
     stats.createSpan({ cls: 'nd-pill', text: `#${rank} influence` });
     stats.createSpan({ cls: 'nd-pill', text: `${this.neighbors[n.i].size} connections` });
     stats.createSpan({ cls: 'nd-pill', text: `topic ${n.c + 1}` });
-    if (this.mode === 'concepts') stats.createSpan({ cls: 'nd-pill', text: `×${this.net.freq[n.i]}` });
     const actions = box.createDiv('nd-gap-actions');
     const f = this.nodeFile(n);
     if (f) button(actions, { icon: 'file-text', text: 'Open', cls: 'mod-cta nd-small', onClick: (e) => this.plugin.openFile(f, e) });
-    if (this.mode === 'concepts') button(actions, { icon: 'search', text: 'Search', cls: 'nd-small', onClick: () => this.plugin.openSearch(n.kind === 'tag' ? `tag:${n.label}` : n.label) });
     const list = box.createDiv('nd-mini-list');
-    const files =
-      this.mode === 'concepts'
-        ? this.net.where[n.i].map((p) => this.app.vault.getAbstractFileByPath(p)).filter((x) => x instanceof TFile)
-        : [...this.neighbors[n.i]].map((j) => this.net.files[j]);
-    box.createDiv({ cls: 'nd-muted', text: this.mode === 'concepts' ? `Appears in ${files.length} note${files.length === 1 ? '' : 's'}:` : 'Linked notes:' });
+    const files = [...this.neighbors[n.i]].map((j) => this.net.files[j]);
+    box.createDiv({ cls: 'nd-muted', text: 'Linked notes:' });
     box.appendChild(list);
     files.slice(0, 12).forEach((file, i) => {
       const row = list.createDiv('nd-mini');
@@ -201,14 +169,7 @@ Object.assign(GraphView.prototype, {
     const wb = this.topicWords(g.b, 4);
     const notesOf = (k) => {
       const t = this.an.topics[k];
-      const out = new Set();
-      if (this.mode === 'notes') t.members.slice(0, 4).forEach((i) => out.add(this.net.files[i].basename));
-      else
-        for (const i of t.members.slice(0, 4))
-          for (const p of this.net.where[i].slice(0, 2)) {
-            const f = this.app.vault.getAbstractFileByPath(p);
-            if (f instanceof TFile) out.add(f.basename);
-          }
+      const out = new Set(t.members.slice(0, 4).map((i) => this.net.files[i].basename));
       return [...out].slice(0, 5);
     };
     const strip = (w) => w.replace(/^\[\[|\]\]$/g, '');

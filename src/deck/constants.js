@@ -66,8 +66,6 @@ const DEFAULT_SETTINGS = {
   revisitDays: 14,
   seen: {},
   graphMaxNodes: 120,
-  graphWindow: 4,
-  extraStopwords: '',
 };
 /** 1.2 keys that moved to Neon Tickets / were removed; dropped after migration. */
 const OLD_KEYS = ['glass', 'intensity', 'styleVersion', 'stampDone'];

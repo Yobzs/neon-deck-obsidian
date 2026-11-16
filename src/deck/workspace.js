@@ -93,13 +93,6 @@ Object.assign(NeonDeck.prototype, {
         if (!seen.has(it.cur)) seen.set(it.cur, []);
         seen.get(it.cur).push(it.set);
       }
-      const ensure = async (dir) => {
-        let acc = '';
-        for (const part of dir.split('/')) {
-          acc = acc ? `${acc}/${part}` : part;
-          if (!get(acc)) await app.vault.createFolder(acc);
-        }
-      };
       let moved = 0;
       const clash = [];
       for (const [cur, sets] of seen) {
@@ -111,7 +104,7 @@ Object.assign(NeonDeck.prototype, {
         }
         if (f) {
           const parent = f.parent;
-          await ensure(target.slice(0, target.lastIndexOf('/')));
+          await ensureFolder(app, target.slice(0, target.lastIndexOf('/')));
           await app.fileManager.renameFile(f, target);
           moved++;
           // drop a folder the move left empty (e.g. Neon/ after its backup moved)
@@ -129,7 +122,7 @@ Object.assign(NeonDeck.prototype, {
           .filter(Boolean)
           .join(', ');
       }
-      if (!get(root)) await app.vault.createFolder(root);
+      await ensureFolder(app, root);
       s.coreTidied = true;
       this._ex = null;
       await this.saveSettings();

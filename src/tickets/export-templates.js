@@ -160,7 +160,7 @@ Object.assign(NeonTickets.prototype, {
       'tags:',
       '  - ticket',
       `${CATS.includes(category) ? category : 'operations'}: true`,
-      `created: ${moment().format('YYYY-MM-DD')}`,
+      `created: ${dayKey()}`,
       ...(due ? [`due: ${due}`] : []),
       ...(remind ? [`remind: ${remind}`] : []),
       ...(jira ? [`jira: ${q(jira)}`] : []),

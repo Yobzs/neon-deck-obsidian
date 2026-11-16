@@ -248,7 +248,7 @@ class DashboardView extends ItemView {
   }
   updateClock() {
     const m = moment();
-    const key = m.format('YYYY-MM-DD');
+    const key = dayKey(m);
     if (this.clockDay && this.clockDay !== key) {
       // a new day while the dashboard stays open: Activity, the done log and day counts follow (issue 31)
       if (this.actMonth && this.actMonth.isSame(moment(this.clockDay, 'YYYY-MM-DD'), 'month')) this.actMonth = null;

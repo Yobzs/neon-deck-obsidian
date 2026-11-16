@@ -191,7 +191,7 @@ Object.assign(NeonTasks.prototype, {
         await ensureFolder(this.app, path.split('/').slice(0, -1).join('/'));
         await this.app.vault.create(path, body);
       }
-      this.settings.lastBackup = moment().format('YYYY-MM-DD');
+      this.settings.lastBackup = dayKey();
       await this.saveSettings();
       if (notify) new Notice('✦ Global tasks backed up');
     } catch (e) {
@@ -199,7 +199,7 @@ Object.assign(NeonTasks.prototype, {
     }
   },
   dailyBackup() {
-    if (this.settings.lastBackup !== moment().format('YYYY-MM-DD')) this.writeBackup();
+    if (this.settings.lastBackup !== dayKey()) this.writeBackup();
   },
   async maybeRestore() {
     if (!this.freshData || this.settings.globalTasks.length) return;

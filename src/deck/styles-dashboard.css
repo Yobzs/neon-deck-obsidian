@@ -460,13 +460,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.nd-mini-meta {
-  font-size: 12px;
-  color: var(--nd-faint);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 /* activity: month stats + calendar, or one week as day columns; fills the card and scales with it (item 7) */
 .nd-w-heat .nd-card-body {
   display: flex;

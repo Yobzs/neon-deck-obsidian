@@ -97,10 +97,6 @@ class NeonTickets extends Plugin {
       this.hookCore();
       this.initTemplates().catch((e) => console.error('Neon Tickets: templates', e));
       window.setTimeout(async () => {
-        if (!this.settings.migrated) {
-          this.settings.migrated = true;
-          await this.saveSettings();
-        }
         // file any done tickets that were left in the ticket folder
         if (this.settings.autoFile) await this.fileAllDone(false);
         this.checkReminders();

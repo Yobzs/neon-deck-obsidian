@@ -88,7 +88,7 @@ Object.assign(NeonTime.prototype, {
     const render = () => {
       if (!body.isConnected) return;
       body.empty();
-      const key = moment().format('YYYY-MM-DD');
+      const key = dayKey();
       if (workBtn) workBtn.remove();
       workBtn = p.workButton(card.actions, true);
       card.actions.prepend(workBtn);

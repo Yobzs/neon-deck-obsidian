@@ -7,7 +7,7 @@ Object.assign(NeonTasks.prototype, {
   async collectTasks() {
     const app = this.app;
     const today = moment().startOf('day');
-    const todayKey = today.format('YYYY-MM-DD');
+    const todayKey = dayKey(today);
     const sources = new Map();
     for (const f of app.vault.getMarkdownFiles()) {
       const cache = app.metadataCache.getFileCache(f);
@@ -104,7 +104,7 @@ Object.assign(NeonTasks.prototype, {
     return gone;
   },
   async completeTask(t) {
-    const stamp = this.settings.stampDone ? ` ✅ ${moment().format('YYYY-MM-DD')}` : '';
+    const stamp = this.settings.stampDone ? ` ✅ ${dayKey()}` : '';
     let ok = false;
     await writeNote(this.app, t.file, (data) => {
       const lines = data.split('\n');

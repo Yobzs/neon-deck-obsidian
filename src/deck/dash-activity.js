@@ -21,7 +21,7 @@ Object.assign(DashboardView.prototype, {
     this.doneSeen = new Set();
     for (const x of items.slice(0, 200)) {
       const m = moment(x.t);
-      const k = m.format('YYYY-MM-DD');
+      const k = dayKey(m);
       if (k !== day) {
         day = k;
         const label = m.isSame(moment(), 'day') ? 'Today' : m.isSame(moment().subtract(1, 'day'), 'day') ? 'Yesterday' : moment().diff(m.clone().startOf('day'), 'days') < 7 ? m.format('dddd') : m.format('ddd D MMM');
@@ -85,7 +85,7 @@ Object.assign(DashboardView.prototype, {
     weeks.forEach((w, wi) => {
       for (let i = 0; i < 7; i++) {
         const m = w.clone().add(i, 'days');
-        const k = m.format('YYYY-MM-DD');
+        const k = dayKey(m);
         const x = days.get(k);
         const n = x ? actCount(x) : 0;
         const c = cal.createDiv('nd-act-day' + (m.month() !== month.month() ? ' is-out' : '') + (k === todayKey ? ' is-today' : '') + (n ? ' is-clickable' : ''));
@@ -104,7 +104,7 @@ Object.assign(DashboardView.prototype, {
     const todayKey = dayKey(Date.now());
     for (let i = 0; i < 7; i++) {
       const m = w.clone().add(i, 'days');
-      const k = m.format('YYYY-MM-DD');
+      const k = dayKey(m);
       const x = days.get(k);
       const col = wk.createDiv('nd-act-col' + (k === todayKey ? ' is-today' : ''));
       col.style.setProperty('--i', String(i));

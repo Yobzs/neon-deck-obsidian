@@ -5,7 +5,7 @@ const {
   PluginSettingTab, Setting, setIcon, normalizePath, moment, debounce, getAllTags,
 } = obsidian;
 
-const ND_VERSION = '1.7.0';
+const ND_VERSION = 'dev'; // tools/build.mjs puts the manifest version here
 const CATS = ['projects', 'school', 'admin', 'operations'];
 /** Old category names still read from notes and saved data. */
 const CAT_ALIAS = { ops: 'operations' };

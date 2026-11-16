@@ -191,7 +191,7 @@ class NewNoteModal extends Modal {
       if (kind === 'tasks') fm.tags = [...new Set([...fmTags(fm), 'tasks'])];
       if (CATS.includes(cat)) fm[cat] = true;
       if (cat === 'untracked') fm.untracked = true;
-      if (!fm.created) fm.created = moment().format('YYYY-MM-DD');
+      if (!fm.created) fm.created = dayKey();
     };
     let target = file;
     if (target) {
