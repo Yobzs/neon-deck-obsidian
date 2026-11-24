@@ -1,5 +1,5 @@
 /* ---- Goals tab (issues 85, 89): goals with dated check-ins instead of a progress bar ---- */
-const GOAL_WEEKS = 12; // weeks of check-in dots per goal
+const GOAL_DAYS = 28; // days on a goal's check-in timeline
 /** Open a hidden <input type=date>'s native picker. */
 function openPicker(picker) {
   try {
@@ -222,17 +222,23 @@ class GoalsView extends ItemView {
       });
     }
 
-    // right: 12 weeks of dots (one column per week, Monday on top); done goals skip it
+    // right: the last 28 days as one timeline of bars, today on the right; done goals skip it
     if (!g.done) {
       const byDay = new Map(g.log.map((x) => [x.d, x]));
-      const strip = r.createDiv({ cls: 'ng-strip', attr: { role: 'img', 'aria-label': `${g.log.length} check-ins in the last ${GOAL_WEEKS} weeks` } });
-      const start = moment(today).startOf('isoWeek').subtract(GOAL_WEEKS - 1, 'weeks');
-      for (let i = 0; i < GOAL_WEEKS * 7; i++) {
-        const k = start.clone().add(i, 'days').format('YYYY-MM-DD');
+      const n = g.log.filter((x) => x.d > moment(today).subtract(GOAL_DAYS, 'days').format('YYYY-MM-DD')).length;
+      const tl = r.createDiv('ng-timeline');
+      const strip = tl.createDiv({ cls: 'ng-strip', attr: { role: 'img', 'aria-label': `${n} check-in${n === 1 ? '' : 's'} in the last ${GOAL_DAYS} days` } });
+      const start = moment(today).subtract(GOAL_DAYS - 1, 'days');
+      for (let i = 0; i < GOAL_DAYS; i++) {
+        const day = start.clone().add(i, 'days');
+        const k = day.format('YYYY-MM-DD');
         const x = byDay.get(k);
-        const dot = strip.createDiv('ng-dot' + (x ? ' is-on' : '') + (k === today ? ' is-now' : '') + (k > today ? ' is-future' : ''));
-        if (x) dot.setAttr('aria-label', `${moment(k).format('ddd D MMM')}${x.note ? ': ' + x.note : ''}`);
+        const bar = strip.createDiv('ng-day' + (x ? ' is-on' : '') + (k === today ? ' is-now' : '') + (day.isoWeekday() === 1 && i ? ' is-week' : ''));
+        bar.setAttr('aria-label', `${k === today ? 'Today' : day.format('ddd D MMM')}${x ? (x.note ? ': ' + x.note : ': checked in') : ''}`);
       }
+      const cap = tl.createDiv('ng-cap');
+      cap.createSpan({ text: start.format('D MMM') });
+      cap.createSpan({ text: 'today' });
     }
     const more = r.createEl('button', { cls: 'nd-icon-btn ng-more', attr: { type: 'button', 'aria-label': 'More' } });
     setIcon(more, 'more-horizontal');
