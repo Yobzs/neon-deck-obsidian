@@ -81,7 +81,7 @@ Requires Obsidian 1.5.0+, desktop. Coming from 1.x (six plugins)? Turn the old o
 - Check: `node --test test/*.test.mjs` and `node tools/check.mjs dist`.
 - Release: bump `src/kernel/manifest.json` and `versions.json`, build, attach the three dist files to a GitHub release, then run **Actions → Package installer** for the ZIP.
 
-Latest release notes: [2.3.2](docs/release-notes/2.3.2.md). Older notes are in the git history.
+Latest release notes: [2.4.0](docs/release-notes/2.4.0.md). Older notes are in the git history.
 
 ## License
 
