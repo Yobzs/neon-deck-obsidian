@@ -14,6 +14,7 @@ const NW_DEFAULTS = {
   notePattern: true,
   limeDividers: true, // --- dividers as a lime dotted line (item 27)
   patternOpacity: 35, // percent of the dashboard pattern's strength (already faint by design)
+  tableWidths: {}, // { notePath: { headerSig: [px, …] } } (issue 92)
 };
 const GRID_COLS = 10;
 const GRID_ROWS = 8;

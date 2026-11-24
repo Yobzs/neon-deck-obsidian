@@ -151,7 +151,8 @@
         "src/write/slash-menu.js",
         "src/write/toolbar.js",
         "src/write/settings.js",
-        "src/write/plugin.js"
+        "src/write/plugin.js",
+        "src/write/table-resize.js"
       ],
       "css": [
         "src/write/styles.css"

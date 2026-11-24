@@ -420,3 +420,11 @@ test('pinned notes keep the order you dragged them into (issue 80)', () => {
   assert.equal(names(list, ['A/!z', 'A/!!y']), '!z,!!y,!x,a,b');
   assert.equal(names(list, ['A/a', 'A/!x']), '!x,!!y,!z,a,b');
 });
+
+test('table widths: header key and rename (issue 92)', () => {
+  const { tableSig, renameWidthKeys } = load('neon-write', ['tableSig', 'renameWidthKeys']);
+  assert.equal(tableSig([' A ', 'B  c', '']), 'A|B c|');
+  const w = { 'a.md': { x: [1] }, 'dir/b.md': { y: [2] }, 'dir2/c.md': { z: [3] } };
+  assert.deepEqual(Object.keys(renameWidthKeys(w, 'a.md', 'n.md')), ['n.md', 'dir/b.md', 'dir2/c.md']);
+  assert.deepEqual(Object.keys(renameWidthKeys(w, 'dir', 'new')), ['a.md', 'new/b.md', 'dir2/c.md']);
+});

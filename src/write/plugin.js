@@ -96,9 +96,22 @@ class NeonWrite extends Plugin {
         },
       });
     }
-    this.registerMarkdownPostProcessor((el) => {
-      for (const t of el.querySelectorAll('table')) if (t.textContent.includes('<')) mergeTable(t);
+    this.registerMarkdownPostProcessor((el, ctx) => {
+      for (const t of el.querySelectorAll('table')) {
+        if (t.textContent.includes('<')) mergeTable(t);
+        this.resizable(t, ctx.sourcePath);
+      }
     });
+    // Live Preview draws tables as widgets the post processor never sees
+    if (cmView) this.registerEditorExtension(cmView.EditorView.updateListener.of((u) => window.requestAnimationFrame(() => this.sizeEditorTables(u.view))));
+    this.settings.tableWidths = { ...(this.settings.tableWidths || {}) }; // own copy, never the shared default
+    this.registerEvent(
+      this.app.vault.on('rename', (f, old) => {
+        const w = this.settings.tableWidths;
+        if (Object.keys(w).some((k) => k === old || k.startsWith(old + '/'))) (this.settings.tableWidths = renameWidthKeys(w, old, f.path)), this.saveSoon();
+      }),
+    );
+    this.registerEvent(this.app.vault.on('delete', (f) => f.path in this.settings.tableWidths && (delete this.settings.tableWidths[f.path], this.saveSoon())));
     this.addCommand({
       id: 'table-title-row',
       name: 'Table: add a title row',
@@ -138,7 +151,14 @@ class NeonWrite extends Plugin {
   onunload() {
     if (this.picker) this.picker.close(); // its document listeners go with it
     this.unmountNotePattern();
-    document.body.removeClass('nw-lifted', 'nw-fonts', 'nw-tables', 'nw-hr');
+    document.body.removeClass('nw-lifted', 'nw-fonts', 'nw-tables', 'nw-hr', 'nw-col-dragging');
+    if (this._saveSoon) (this._saveSoon.cancel(), this.saveSettings()); // keep the last resize
+    document.querySelectorAll('.nw-col-grip').forEach((g) => g.remove());
+    document.querySelectorAll('table.nw-resizable').forEach((t) => {
+      t.removeClass('nw-resizable', 'nw-sized');
+      t.style.width = '';
+      t.querySelectorAll('th').forEach((c) => (c.style.width = ''));
+    });
   }
   /** A small lock at the right of a callout's title; locked = lime. */
   addLock(c, ctx) {

@@ -655,3 +655,46 @@ body.nw-fonts.nd-themed .print {
     animation: none;
   }
 }
+/* resizable table columns (issue 92) */
+.nw-resizable th {
+  position: relative;
+}
+table.nw-sized {
+  table-layout: fixed;
+  max-width: none;
+}
+table.nw-sized th,
+table.nw-sized td {
+  overflow-wrap: anywhere;
+}
+.nw-col-grip {
+  position: absolute;
+  top: 0;
+  right: 0; /* inside its own cell: the next cell would cover anything past the edge */
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 3;
+  touch-action: none;
+}
+.nw-col-grip::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 15%;
+  bottom: 15%;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--nd-accent, var(--interactive-accent));
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.nw-resizable th:hover > .nw-col-grip::after,
+.nw-col-grip.is-drag::after {
+  opacity: 0.8;
+}
+body.nw-col-dragging,
+body.nw-col-dragging * {
+  cursor: col-resize !important;
+  user-select: none;
+}
