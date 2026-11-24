@@ -1,3 +1,31 @@
+/* the cursor hops over neon-cards blocks, or Live Preview would show their source (issue 87) */
+let nrCm = null;
+try {
+  nrCm = require('@codemirror/state'); // provided by Obsidian at runtime
+} catch (e) {
+  console.error('Neon Research: card block guard needs @codemirror/state', e);
+}
+const cardBlockCache = new WeakMap();
+/** [from, to] of every neon-cards block in a CodeMirror doc. */
+function cardBlockRanges(doc) {
+  if (cardBlockCache.has(doc)) return cardBlockCache.get(doc);
+  // shortcut: one pass over the lines per changed doc (same as the callout locks); use the syntax tree if huge notes lag
+  const out = [];
+  let open = null; // line where a fence opened; .cards when it is a neon-cards fence
+  for (let i = 1; i <= doc.lines; i++) {
+    const l = doc.line(i);
+    if (!/^\s*(```|~~~)/.test(l.text)) continue;
+    if (!open) open = { from: l.from, cards: CARD_FENCE_RE.test(l.text) };
+    else {
+      if (open.cards) out.push([open.from, l.to]);
+      open = null;
+    }
+  }
+  if (open && open.cards) out.push([open.from, doc.length]); // unclosed block runs to the end
+  cardBlockCache.set(doc, out);
+  return out;
+}
+
 /* ---- plugin ------------------------------------------------------------------ */
 class NeonResearch extends Plugin {
   async onload() {
@@ -35,6 +63,26 @@ class NeonResearch extends Plugin {
     cardCmd('add-exercise', 'Add exercise to this note', true);
     // cards live in a neon-cards block: in the file, never on the page (issue 56)
     this.registerMarkdownCodeBlockProcessor(CARD_BLOCK, (src, el) => el.addClass('nr-cards-block'));
+    if (nrCm)
+      this.registerEditorExtension(
+        nrCm.EditorState.transactionFilter.of((tr) => {
+          if (!tr.selection || tr.docChanged || (tr.annotation(nrCm.Transaction.userEvent) && !tr.isUserEvent('select'))) return tr;
+          const ranges = cardBlockRanges(tr.newDoc);
+          if (!ranges.length) return tr;
+          const old = tr.startState.selection.main.head;
+          let hit = false;
+          const sel = tr.selection.ranges.map((r) => {
+            const b = ranges.find(([f, t]) => r.head >= f && r.head <= t);
+            if (!b) return r;
+            hit = true;
+            let h = r.head >= old ? b[1] + 1 : b[0] - 1; // past the block, in the direction of the move
+            // block at the very start or end (the usual place): a cursor stays put, a selection still reaches the edge
+            if (h < 0 || h > tr.newDoc.length) h = r.empty ? old : Math.max(0, Math.min(h, tr.newDoc.length));
+            return nrCm.EditorSelection.range(r.empty ? h : r.anchor, h);
+          });
+          return hit ? [tr, { selection: nrCm.EditorSelection.create(sel, tr.selection.mainIndex), sequential: true }] : tr;
+        }),
+      );
     // the cards menu and side button of notes inside a section
     this.registerEvent(this.app.workspace.on('file-open', () => this.syncButtons()));
     this.registerEvent(this.app.workspace.on('active-leaf-change', () => this.syncButtons()));
