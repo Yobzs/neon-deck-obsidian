@@ -1,5 +1,14 @@
 /* ---- Goals tab (issues 85, 89): goals with dated check-ins instead of a progress bar ---- */
 const GOAL_WEEKS = 12; // weeks of check-in dots per goal
+/** Open a hidden <input type=date>'s native picker. */
+function openPicker(picker) {
+  try {
+    picker.showPicker();
+  } catch (err) {
+    picker.focus();
+    picker.click();
+  }
+}
 
 Object.assign(NeonTasks.prototype, {
   openGoals() {
@@ -101,16 +110,30 @@ class GoalsView extends ItemView {
     const scroll = sc.scrollTop;
     sc.empty();
     this.day = dayKey();
+    const today = this.day;
     const goals = this.plugin.settings.goals;
     const active = goals.filter((g) => !g.done);
     const done = goals.filter((g) => g.done);
     const root = sc.createDiv('ng-inner');
 
+    // header like the Time tab: name pill, date, and four small stat tiles
     const head = root.createDiv('nd-hero ng-head');
     head.createDiv({ cls: 'nd-hero-greet', text: 'Goals' });
-    head.createDiv({ cls: 'nd-hero-date', text: goals.length ? `${active.length} active · ${done.length} done` : 'Track what you work towards' });
+    head.createDiv({ cls: 'nd-hero-date', text: moment().format('dddd D MMM') });
+    const stats = head.createDiv('ng-stats');
+    const weekStart = moment().startOf('isoWeek').format('YYYY-MM-DD');
+    const stat = (v, l, accent) => {
+      const t = stats.createDiv('nd-tile ng-stat' + (accent ? ' is-accent' : ''));
+      t.createDiv({ cls: 'nd-tile-value', text: String(v) });
+      t.createDiv({ cls: 'nd-tile-label', text: l });
+    };
+    stat(`${active.filter((g) => g.log.some((x) => x.d === today)).length}/${active.length}`, 'today', true);
+    stat(active.reduce((n, g) => n + g.log.filter((x) => x.d >= weekStart).length, 0), 'this week');
+    stat(Math.max(0, ...active.map((g) => goalStreak(g.log, today))), 'best streak');
+    stat(done.length, 'done');
 
-    const card = widget(root, 'ng-panel', 'Active', 'target', active.length ? String(active.length) : '');
+    const card = widget(root, 'ng-panel', 'Active', 'target', 'check in on the days you work on one');
+    card.badge && card.badge.setText(active.length ? String(active.length) : '');
     const list = card.body.createDiv('ng-list');
     if (!active.length) emptyState(list, 'No goals yet: add one below ✦');
     for (const g of active) this.row(list, g);
@@ -129,85 +152,99 @@ class GoalsView extends ItemView {
     }
 
     if (done.length) {
-      const dc = widget(root, 'ng-panel ng-done', 'Done', 'check-circle-2', String(done.length));
+      const dc = widget(root, 'ng-panel ng-done', 'Done', 'check-circle-2', `${done.length} finished`);
       const dl = dc.body.createDiv('ng-list');
       for (const g of done.slice().sort((a, b) => b.done - a.done)) this.row(dl, g);
     }
     sc.scrollTop = scroll;
   }
+  /** The ⋯ menu: rename, due date, done / reopen, delete. */
+  menu(e, g, picker) {
+    const p = this.plugin;
+    const m = new Menu();
+    m.addItem((i) => i.setTitle('Rename…').setIcon('pencil').onClick(() => new PromptModal(this.app, { title: 'Rename goal', value: g.text, cta: 'Save', onSubmit: (v) => v && p.setGoal(g, { text: v }) }).open()));
+    if (!g.done) {
+      m.addItem((i) => i.setTitle(g.due ? 'Change due date…' : 'Set due date…').setIcon('calendar').onClick(() => openPicker(picker)));
+      if (g.due) m.addItem((i) => i.setTitle('Clear due date').setIcon('calendar-x').onClick(() => p.setGoal(g, { due: '' })));
+      m.addItem((i) => i.setTitle('Mark done').setIcon('circle-check-big').onClick(() => p.setGoal(g, { done: Date.now() })));
+    } else m.addItem((i) => i.setTitle('Reopen').setIcon('rotate-ccw').onClick(() => p.setGoal(g, { done: null })));
+    m.addSeparator();
+    m.addItem((i) => i.setTitle('Delete').setIcon('trash-2').setWarning(true).onClick(() => p.removeGoal(g)));
+    m.showAtMouseEvent(e);
+  }
   row(list, g) {
     const p = this.plugin;
     const today = this.day;
-    const r = list.createDiv('ng-row' + (g.done ? ' is-done' : ''));
-    const top = r.createDiv('ng-top');
-    const name = top.createEl('button', { cls: 'ng-name', text: g.text, attr: { type: 'button', title: 'Rename' } });
-    name.addEventListener('click', () => new PromptModal(this.app, { title: 'Rename goal', value: g.text, cta: 'Save', onSubmit: (v) => v && p.setGoal(g, { text: v }) }).open());
-
-    const overdue = !g.done && !!g.due && g.due < today;
-    const due = top.createEl('button', { cls: 'ng-due' + (overdue ? ' is-overdue' : '') + (g.due ? '' : ' is-empty'), text: g.due ? moment(g.due).format('D MMM') : 'due?', attr: { type: 'button', title: 'Set due date' } });
-    const picker = top.createEl('input', { cls: 'ng-date', attr: { type: 'date', tabindex: '-1', 'aria-hidden': 'true' } });
-    picker.value = g.due || '';
-    picker.addEventListener('change', () => p.setGoal(g, { due: picker.value || '' }));
-    due.addEventListener('click', () => {
-      try {
-        picker.showPicker();
-      } catch (err) {
-        picker.focus();
-        picker.click();
-      }
-    });
-
-    const acts = top.createDiv('ng-acts');
     const todayLog = g.log.find((x) => x.d === today);
-    if (!g.done) {
-      button(acts, {
-        icon: todayLog ? 'check' : 'plus',
-        text: todayLog ? 'Checked in' : 'Check in',
-        cls: todayLog ? 'ng-checked' : 'mod-cta',
-        title: todayLog ? 'Edit today’s note' : 'Log that you worked on this today',
-        onClick: () => {
-          new PromptModal(this.app, { title: `Check in · ${g.text}`, value: todayLog ? todayLog.note : '', placeholder: 'What did you do? (optional)', cta: 'Check in', onSubmit: (v) => p.checkIn(g, v) }).open();
-        },
-      });
-      button(acts, { icon: 'circle-check-big', cls: 'nd-icon-btn', title: 'Mark done', onClick: () => p.setGoal(g, { done: Date.now() }) });
-    } else button(acts, { icon: 'rotate-ccw', cls: 'nd-icon-btn', title: 'Reopen', onClick: () => p.setGoal(g, { done: null }) });
-    button(acts, { icon: 'x', cls: 'nd-icon-btn', title: 'Delete goal', onClick: () => p.removeGoal(g) });
+    const r = list.createDiv('ng-row' + (g.done ? ' is-done' : '') + (todayLog && !g.done ? ' is-today' : ''));
 
-    // 12 weeks of dots, one column per week (Monday on top), filled on check-in days
-    const byDay = new Map(g.log.map((x) => [x.d, x]));
-    const strip = r.createDiv({ cls: 'ng-strip', attr: { role: 'img', 'aria-label': `${g.log.length} check-ins` } });
-    const start = moment(today).startOf('isoWeek').subtract(GOAL_WEEKS - 1, 'weeks');
-    for (let i = 0; i < GOAL_WEEKS * 7; i++) {
-      const k = start.clone().add(i, 'days').format('YYYY-MM-DD');
-      const x = byDay.get(k);
-      const dot = strip.createDiv('ng-dot' + (x ? ' is-on' : '') + (k === today ? ' is-today' : '') + (k > today ? ' is-future' : ''));
-      if (x) dot.setAttr('aria-label', `${moment(k).format('ddd D MMM')}${x.note ? ': ' + x.note : ''}`);
+    // left: the check-in button, like a task's checkbox (done goals show a calm tick)
+    const chk = r.createEl('button', { cls: 'ng-check', attr: { type: 'button' } });
+    if (g.done) {
+      setIcon(chk, 'check');
+      chk.setAttr('aria-label', 'Done');
+      chk.disabled = true;
+    } else {
+      setIcon(chk, todayLog ? 'check' : 'plus');
+      chk.setAttr('aria-label', todayLog ? 'Checked in today · edit the note' : 'Check in for today');
+      chk.addEventListener('click', () =>
+        new PromptModal(this.app, { title: `Check in · ${g.text}`, value: todayLog ? todayLog.note : '', placeholder: 'What did you do? (optional)', cta: 'Check in', onSubmit: (v) => p.checkIn(g, v) }).open(),
+      );
     }
 
+    const main = r.createDiv('ng-main');
+    main.createDiv({ cls: 'ng-name', text: g.text });
+    const meta = main.createDiv('ng-meta');
+    const picker = r.createEl('input', { cls: 'ng-date', attr: { type: 'date', tabindex: '-1', 'aria-hidden': 'true' } });
+    picker.value = g.due || '';
+    picker.addEventListener('change', () => p.setGoal(g, { due: picker.value || '' }));
     const streak = goalStreak(g.log, today);
     const last = g.log.length ? g.log.map((x) => x.d).sort().pop() : '';
-    const meta = r.createDiv('ng-meta');
-    const bits = [];
-    if (streak > 1) bits.push(`${streak}-day streak`);
-    bits.push(last ? `last check-in ${last === today ? 'today' : moment(last).from(moment(today))}` : 'no check-ins yet');
-    if (g.done) bits.push(`done ${moment(g.done).format('D MMM YYYY')}`);
-    meta.createSpan({ text: bits.join(' · ') });
+    if (g.done) meta.createSpan({ text: `done ${moment(g.done).format('D MMM YYYY')} · ${g.log.length} check-in${g.log.length === 1 ? '' : 's'}` });
+    else {
+      if (streak > 1) meta.createSpan({ cls: 'ng-streak', text: `${streak}-day streak` });
+      meta.createSpan({ text: last ? (last === today ? 'checked in today' : `last ${moment(last).from(moment(today))}`) : 'no check-ins yet' });
+      if (g.due) {
+        const overdue = g.due < today;
+        const due = meta.createEl('button', { cls: 'ng-due' + (overdue ? ' is-overdue' : ''), text: `due ${moment(g.due).format('D MMM')}`, attr: { type: 'button', 'aria-label': 'Change due date' } });
+        due.addEventListener('click', () => openPicker(picker));
+      }
+    }
     const notes = g.log.filter((x) => x.note).sort((a, b) => (a.d < b.d ? 1 : -1));
+    const open = this.expanded.has(g.id);
     if (notes.length) {
-      const open = this.expanded.has(g.id);
-      const tg = meta.createEl('button', { cls: 'ng-toggle', text: open ? 'Hide notes' : `Notes (${notes.length})`, attr: { type: 'button', 'aria-expanded': String(open) } });
+      const tg = meta.createEl('button', { cls: 'ng-toggle', attr: { type: 'button', 'aria-expanded': String(open) } });
+      tg.setText(open ? 'hide notes' : `${notes.length} note${notes.length === 1 ? '' : 's'}`);
       tg.addEventListener('click', () => {
         if (open) this.expanded.delete(g.id);
         else this.expanded.add(g.id);
         this.render();
       });
-      if (open) {
-        const nl = r.createDiv('ng-notes');
-        for (const x of notes.slice(0, 20)) {
-          const n = nl.createDiv('ng-note');
-          n.createSpan({ cls: 'ng-note-d', text: moment(x.d).format('D MMM') });
-          n.createSpan({ text: x.note });
-        }
+    }
+
+    // right: 12 weeks of dots (one column per week, Monday on top); done goals skip it
+    if (!g.done) {
+      const byDay = new Map(g.log.map((x) => [x.d, x]));
+      const strip = r.createDiv({ cls: 'ng-strip', attr: { role: 'img', 'aria-label': `${g.log.length} check-ins in the last ${GOAL_WEEKS} weeks` } });
+      const start = moment(today).startOf('isoWeek').subtract(GOAL_WEEKS - 1, 'weeks');
+      for (let i = 0; i < GOAL_WEEKS * 7; i++) {
+        const k = start.clone().add(i, 'days').format('YYYY-MM-DD');
+        const x = byDay.get(k);
+        const dot = strip.createDiv('ng-dot' + (x ? ' is-on' : '') + (k === today ? ' is-now' : '') + (k > today ? ' is-future' : ''));
+        if (x) dot.setAttr('aria-label', `${moment(k).format('ddd D MMM')}${x.note ? ': ' + x.note : ''}`);
+      }
+    }
+    const more = r.createEl('button', { cls: 'nd-icon-btn ng-more', attr: { type: 'button', 'aria-label': 'More' } });
+    setIcon(more, 'more-horizontal');
+    more.addEventListener('click', (e) => this.menu(e, g, picker));
+    r.addEventListener('contextmenu', (e) => (e.preventDefault(), this.menu(e, g, picker)));
+
+    if (open && notes.length) {
+      const nl = r.createDiv('ng-notes');
+      for (const x of notes.slice(0, 20)) {
+        const n = nl.createDiv('ng-note');
+        n.createSpan({ cls: 'ng-note-d', text: moment(x.d).format('D MMM') });
+        n.createSpan({ text: x.note });
       }
     }
   }
