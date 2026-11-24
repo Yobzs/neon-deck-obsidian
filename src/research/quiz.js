@@ -181,7 +181,14 @@ class FlashcardModal extends Modal {
         onClick: async (e) => {
           e.stopPropagation();
           if (this.editing && this.editing.id === card.id) this.editing = null;
-          await p.setCard(card, null);
+          r.remove(); // gone at once; the list redraws from the new text right after
+          try {
+            await p.setCard(card, null);
+          } catch (err) {
+            console.error('Neon Study: could not delete card', err);
+            new Notice('Could not delete the card');
+            this.drawList();
+          }
         },
       });
     }

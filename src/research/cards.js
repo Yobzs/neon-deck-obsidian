@@ -37,14 +37,18 @@ Object.assign(NeonResearch.prototype, {
   },
   /** Add one card line to the note's hidden card block (through the editor when it's open: keeps undo). */
   async appendCard(file, line) {
-    await writeNote(this.app, file, (t) => addToCardBlock(t, line));
+    this.cardsWritten(file, await writeNote(this.app, file, (t) => addToCardBlock(t, line)));
   },
   /** Edit (line) or delete (null) one card of a note. */
   async setCard(card, line) {
-    await writeNote(this.app, card.file, (t) => setCardLine(t, card, line));
+    this.cardsWritten(card.file, await writeNote(this.app, card.file, (t) => setCardLine(t, card, line)));
   },
   async moveCardsOffPage(file) {
-    await writeNote(this.app, file, (t) => moveCardsToBlock(t, this.parseCards(file, t)));
+    this.cardsWritten(file, await writeNote(this.app, file, (t) => moveCardsToBlock(t, this.parseCards(file, t))));
+  },
+  /** Redraw from the text just written: an open note saves its editor ~2 s later, and only then would 'changed' fire (issue 86). */
+  cardsWritten(file, text) {
+    if (typeof text === 'string') this.noteText(file, text);
   },
 
   /* ---- quiz cards ---- */
