@@ -27,6 +27,11 @@
   letter-spacing: 0.04em;
   color: var(--nd-go);
 }
+button.tk-id {
+  border: 0;
+  height: auto;
+  cursor: copy;
+}
 .tk-faint {
   color: var(--nd-faint);
   font-size: 12.5px;

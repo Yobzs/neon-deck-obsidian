@@ -453,6 +453,10 @@ class TimeEntryModal extends Modal {
 function ticketMenu(plugin, t, m) {
   m.addItem((i) => i.setTitle('Open').setIcon('ticket').onClick(() => plugin.showTicket(t.file)));
   m.addItem((i) => i.setTitle('Open in new tab').setIcon('file-plus-2').onClick(() => plugin.openTicket(t.file, true)));
+  if (t.id) m.addItem((i) => i.setTitle('Copy ticket number').setIcon('copy').onClick(async () => {
+    await navigator.clipboard.writeText(t.id);
+    new Notice(`Copied ${t.id}`);
+  }));
   m.addItem((i) => i.setTitle('Edit as note').setIcon('file-text').onClick(() => plugin.openRaw(t.file)));
   m.addItem((i) => i.setTitle('Save as template…').setIcon('layout-template').onClick(() => plugin.templateFromTicket(t)));
   m.addSeparator();

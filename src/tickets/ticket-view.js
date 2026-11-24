@@ -116,7 +116,13 @@ class TicketCard {
     const card = root.createDiv(`tk-card status-${t.status} prio-${t.priority}`);
     const kick = card.createDiv('tk-kicker');
     kick.createSpan({ cls: 'tk-k', text: 'Ticket' });
-    if (t.id) kick.createSpan({ cls: 'tk-id', text: t.id });
+    if (t.id) {
+      const id = kick.createEl('button', { cls: 'tk-id', text: t.id, attr: { type: 'button', title: 'Copy ticket number' } });
+      id.addEventListener('click', async () => {
+        await navigator.clipboard.writeText(t.id);
+        new Notice(`Copied ${t.id}`);
+      });
+    }
     if (t.jira) kick.createSpan({ cls: 'tk-jira', text: t.jira });
     kick.createSpan({ cls: 'tk-path', text: `· ${file.parent && file.parent.path !== '/' ? file.parent.path + '/' : ''}` });
     const corner = kick.createSpan('tk-corner tk-corner-btns');
