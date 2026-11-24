@@ -7,7 +7,7 @@ One Obsidian plugin as a personal command centre: dashboard, tasks, tickets, aut
 | Module | What it does |
 |---|---|
 | **Neon Deck** | Dashboard, themes, live patterns, quick capture, card explorer, note graph |
-| **Neon Tasks** | Tasks widget, Global tasks, New note card, Fix properties |
+| **Neon Tasks** | Tasks widget, Global tasks, Goals tab, New note card, Fix properties |
 | **Neon Tickets** | Ticket pop-up, templates, reminders, self-writing log, PDF export |
 | **Neon Time** | Active time per category, workday timer, daily Time Log notes |
 | **Neon Write** | Table picker, slash menu, selection toolbar, lockable callouts, page breaks |
@@ -27,6 +27,7 @@ All six are modules of one plugin; switch any off in *Settings → Neon Deck mod
 ### Tasks
 - Open tasks from notes tagged `tasks`, today's daily note and a Quick tasks note, grouped Overdue · Today · Later.
 - Global tasks for things not tied to a note, with a daily backup.
+- Goals tab: check in on the days you work on a goal (optional note), with a 12-week strip, streak and notes.
 - Edit (pencil) or delete (×, with Undo) any task on hover; global tasks reorder by drag.
 
 ### Tickets
@@ -80,7 +81,7 @@ Requires Obsidian 1.5.0+, desktop. Coming from 1.x (six plugins)? Turn the old o
 - Check: `node --test test/*.test.mjs` and `node tools/check.mjs dist`.
 - Release: bump `src/kernel/manifest.json` and `versions.json`, build, attach the three dist files to a GitHub release, then run **Actions → Package installer** for the ZIP.
 
-Latest release notes: [2.3.0](docs/release-notes/2.3.0.md). Older notes are in the git history.
+Latest release notes: [2.3.1](docs/release-notes/2.3.1.md). Older notes are in the git history.
 
 ## License
 
