@@ -451,75 +451,161 @@ body:not(.nd-themed) .nd-empty {
     transition: none;
   }
 }
-/* progress goals */
-.np-row {
+/* Goals tab (issues 85, 89) */
+.ng-view.view-content {
+  background: var(--nd-bg);
+}
+.ng-view * {
+  box-sizing: border-box;
+}
+.ng-scroll {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  z-index: 1;
+}
+.ng-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 16px 20px 32px;
+}
+.ng-panel.nd-card,
+.ng-panel .nd-card-body {
+  overflow: visible;
+}
+.ng-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ng-row {
   position: relative;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 8px;
-  padding: 4px 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--nd-line);
+  border-radius: 10px;
+  background: var(--nd-surface2, var(--background-secondary));
 }
-.np-name {
+.ng-row.is-done {
+  opacity: 0.7;
+}
+.ng-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ng-view button.ng-name,
+.ng-view button.ng-due,
+.ng-view button.ng-toggle {
+  background: none;
+  border: 0;
+  box-shadow: none;
+  height: auto;
+  padding: 0;
+  cursor: pointer;
+}
+.ng-view button.ng-name {
+  display: block;
   flex: 1;
   min-width: 0;
+  text-align: left;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.np-bar {
-  flex: 0 1 110px;
-  min-width: 50px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  touch-action: none;
-}
-.np-track {
-  flex: 1;
-  height: 6px;
-  transition: height var(--nd-fast, 0.12s) ease;
-  border-radius: 3px;
-  background: var(--nd-surface2, var(--background-secondary));
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-}
-.np-bar:hover .np-track {
-  height: 9px;
-}
-.np-fill {
-  height: 100%;
-  background: var(--nd-go);
-}
-.np-row.is-done .np-name {
+.ng-row.is-done .ng-name {
+  text-decoration: line-through;
   color: var(--nd-muted, var(--text-muted));
 }
-.np-pct {
-  font: 11px var(--nd-mono, var(--font-monospace));
-  width: 34px;
-  text-align: right;
-}
-.np-due {
-  width: 44px; /* due dates line up in a column */
+.ng-due {
   font: 11px var(--nd-mono, var(--font-monospace));
   color: var(--nd-muted, var(--text-muted));
-  cursor: pointer;
 }
-.np-due.is-empty {
+.ng-due.is-empty {
   color: var(--nd-faint, var(--text-faint));
 }
-.np-due.is-overdue {
+.ng-due.is-overdue {
   color: var(--nd-accent, var(--text-error));
 }
 /* hidden: only used to open the native date picker */
-.np-date {
+.ng-date {
   position: absolute;
   width: 0;
   height: 0;
   opacity: 0;
   pointer-events: none;
 }
-.np-row:hover .nt-del {
-  opacity: 1;
+.ng-acts {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.ng-checked {
+  color: var(--nd-go);
+}
+.ng-strip {
+  display: grid;
+  grid-template-rows: repeat(7, 9px);
+  grid-auto-flow: column;
+  grid-auto-columns: 9px;
+  gap: 3px;
+  width: max-content;
+  max-width: 100%;
+  overflow: hidden;
+}
+.ng-dot {
+  border-radius: 2px;
+  background: var(--nd-line, var(--background-modifier-border));
+}
+.ng-dot.is-on {
+  background: var(--nd-go);
+}
+.ng-dot.is-today {
+  outline: 1px solid var(--nd-muted, var(--text-muted));
+  outline-offset: 1px;
+}
+.ng-dot.is-future {
+  visibility: hidden;
+}
+.ng-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font: 11px var(--nd-mono, var(--font-monospace));
+  color: var(--nd-muted, var(--text-muted));
+}
+.ng-toggle {
+  font: inherit;
+  text-decoration: underline;
+}
+.ng-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12.5px;
+}
+.ng-note {
+  display: flex;
+  gap: 10px;
+}
+.ng-note-d {
+  flex: none;
+  width: 48px;
+  font: 11px var(--nd-mono, var(--font-monospace));
+  color: var(--nd-muted, var(--text-muted));
+}
+@media (max-width: 560px) {
+  .ng-top {
+    flex-wrap: wrap;
+  }
+  .ng-name {
+    flex-basis: 100%;
+  }
 }

@@ -12,8 +12,7 @@ const TASKS_DEFAULTS = {
   showNoCategoryBar: true,
   installedAt: 0,
   globalTasks: [],
-  progress: [],
-  widgetPane: 'tasks',
+  goals: [],
   doneLog: [],
   lastBackup: '',
 };
@@ -38,14 +37,37 @@ function taskMetaless(raw) {
 function taskDisplay(raw) {
   return excerptOf(taskMetaless(raw), 140);
 }
-/** Progress value snapped to 5% steps and clamped to 0..100. */
-function snapPct(x) {
-  const n = Math.round(Number(x) / 5) * 5;
-  return Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : 0;
+const VIEW_GOALS = 'neon-goals';
+/** 'YYYY-MM-DD' moved by n days (plain UTC dates: no time zone or DST drift). */
+function dayShift(key, n) {
+  const d = new Date(key + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
 }
-/** Markdown line for a progress item, used in the backup note. */
-function progressLine(p) {
-  return `- ${p.text} — ${p.pct}%${p.due ? ' · due ' + p.due : ''}`;
+/** Days in a row with a check-in, ending today (or yesterday: today's check-in may still come). */
+function goalStreak(log, today) {
+  const days = new Set((log || []).map((x) => x.d));
+  let d = days.has(today) ? today : dayShift(today, -1);
+  let n = 0;
+  while (days.has(d)) (n++, (d = dayShift(d, -1)));
+  return n;
+}
+/** A Progress item (2.3.0) as a goal: its percent becomes the first check-in, 100% means done (issue 85). */
+function fromProgress(p, today, now) {
+  const pct = Number(p.pct) || 0;
+  return {
+    id: p.id || now.toString(36),
+    text: String(p.text || ''),
+    due: p.due || '',
+    created: p.created || now,
+    done: pct >= 100 ? now : null,
+    log: pct > 0 ? [{ d: today, note: `${pct}% (from Progress)` }] : [],
+  };
+}
+/** Markdown line for a goal, used in the backup note. */
+function goalLine(g) {
+  const last = g.log && g.log.length ? g.log.map((x) => x.d).sort().pop() : '';
+  return `- ${g.text}${g.due ? ' · due ' + g.due : ''}${last ? ' · last check-in ' + last : ''}${g.done ? ' · done' : ''}`;
 }
 const TASK_LINK_RE = /(!?)\[\[([^\]|#^]+)(?:[#^][^\]|]*)?(?:\|([^\]]+))?\]\]|(!?)\[([^\]]+)\]\(([^)\s]+)\)/g;
 /** Task text as plain and link parts: [[note]], [[note#h|alias]], [text](note.md). Embeds and web links stay text. */
